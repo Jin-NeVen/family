@@ -18,3 +18,14 @@ TBA
 
 ### スマホ画面共有機能
 TBA
+
+## How To Run
+- Quick Startで紹介された SkyWay Auth Tokenを生成ツール token.jsよりtokenを生成し、　Family/app/src/main/res/raw/auth_token.txt ファイルの内容を更新する
+- ビルドして実行
+
+### 補足 - 部屋監視機能について
+- 「監視カメラ稼働中の部屋を入室できる」と想定していたため、監視カメラ稼働してない部屋には入室できません。
+- 「監視カメラ稼働中の部屋」を作るには、Familyアプリ以外のSyWay SDKが組み込まれたアプリを利用し、以下の名前でSFURoomを作成してVideo/AudioをPublishする。そうすれば、Familyアプリ経由で各配信中の部屋を入室することが可能になります
+
+## その他
+TBA
