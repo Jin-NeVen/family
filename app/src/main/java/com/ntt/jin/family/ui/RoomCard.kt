@@ -32,9 +32,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.ntt.jin.family.LocalAppContext
+import com.ntt.jin.family.LocalRoomViewModel
 import com.ntt.jin.family.R
 import com.ntt.jin.family.data.HomeRepositoryImpl
 import com.ntt.jin.family.data.Room
+import com.ntt.jin.family.data.User
 import com.ntt.jin.family.ui.PreviewParameterData.rooms
 import com.ntt.jin.family.ui.theme.FamilyTheme
 import java.time.Instant
@@ -43,7 +45,8 @@ import java.time.Instant
 @Composable
 fun RoomCard(
     room: Room,
-    roomViewModel: RoomViewModel = RoomViewModel(),
+    localUser: User,
+    roomViewModel: RoomViewModel,
     navController: NavController,
     modifier: Modifier = Modifier,
 ) {
@@ -55,7 +58,8 @@ fun RoomCard(
             .fillMaxWidth()
             .padding(16.dp)
             .clickable(onClick = {
-                roomViewModel.joinRoom(room.name, "Jin")
+                //TODO
+                roomViewModel.joinRoom(room.name, localUser.name)
             }),
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
@@ -122,8 +126,9 @@ private fun RoomCardPreview(
             Surface {
                 RoomCard(
                     room = rooms[0],
-                    roomViewModel = RoomViewModel(),
-                    navController = NavController(LocalAppContext.current)
+                    roomViewModel = LocalRoomViewModel.current,
+                    navController = NavController(LocalAppContext.current),
+                    localUser = User(name = "Jin")
                 )
             }
         }

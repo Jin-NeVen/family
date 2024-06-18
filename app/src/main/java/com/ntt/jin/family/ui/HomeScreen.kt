@@ -10,7 +10,7 @@ import androidx.navigation.NavController
 fun HomeScreen(
     navController: NavController,
     homeViewModel: HomeViewModel) {
-    val homeUiState by homeViewModel.homeUiState.collectAsState()
+    val homeUiState = homeViewModel.homeUiState
 
     when (homeUiState) {
         is HomeUiState.Loading -> {
@@ -22,6 +22,7 @@ fun HomeScreen(
             RoomCardGrid(
                 items = rooms,
                 navController = navController,
+                localUser = homeViewModel.localUser
             )
         }
         is HomeUiState.Error -> {
