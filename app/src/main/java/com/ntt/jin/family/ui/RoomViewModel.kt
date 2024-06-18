@@ -6,7 +6,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.CreationExtras
+import com.ntt.jin.family.FamilyApplication
+import com.ntt.jin.family.data.RoomRepository
 import com.ntt.skyway.core.content.Encoding
 import com.ntt.skyway.core.content.local.LocalVideoStream
 import com.ntt.skyway.core.content.local.source.CameraSource
@@ -25,7 +29,27 @@ enum class CameraType {
     FOREGROUND, BACKGROUND
 }
 
-class RoomViewModel: ViewModel() {
+class RoomViewModel(
+    private val roomRepository: RoomRepository
+): ViewModel() {
+
+    companion object {
+        val TAG = "RoomViewModel"
+
+        val Factory: ViewModelProvider.Factory = object : ViewModelProvider.Factory{
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel> create(
+                modelClass: Class<T>,
+                extras: CreationExtras
+            ): T {
+                val application = checkNotNull(extras[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY])
+                return RoomViewModel(
+                    (application as FamilyApplication).roomRepository
+                ) as T
+            }
+        }
+
+    }
 
     var roomJoined by mutableStateOf(false)
         private set
@@ -63,14 +87,16 @@ class RoomViewModel: ViewModel() {
             sfuRoom = SFURoom.find(name = roomName)
             if (sfuRoom == null) {
                 //TODO join room failed
+                Log.d(TAG, "room $roomName not found")
                 return@launch
             }
 
-            localSfuRoomMember = sfuRoom!!.join(com.ntt.skyway.room.member.RoomMember.Init(memberName))
+            localSfuRoomMember = sfuRoom!!.join(RoomMember.Init(memberName))
             if (localSfuRoomMember == null) {
+                Log.d(TAG, "member $memberName join room failed")
                 return@launch
             }
-            Log.d("App", "room joined")
+            Log.d(TAG, "room ${sfuRoom!!.name} found, member ${localSfuRoomMember!!.name?:"Anonymous"} joined.")
             roomJoined = true
             setupSfuRoomHandler()
         }
@@ -97,56 +123,96 @@ class RoomViewModel: ViewModel() {
             //TODO join room failed
             return
         }
+        if (localSfuRoomMember == null) {
+            Log.d(TAG, "localSfuRoomMember is null")
+            return
+        }
         sfuRoom!!.publications.forEach { publication ->
-            Log.d("App", "publication: ${publication.id}")
+            Log.d(TAG, "publication: ${publication.id} ${publication.contentType.name}")
         }
         sfuRoom!!.members.forEach { roomMember ->
-            Log.d("App", "member: ${roomMember.name}")
+            if (roomMember.id == localSfuRoomMember!!.id) {
+                Log.d(TAG, "local member name: ${roomMember.name}, id: ${roomMember.id}")
+                roomMember.publications.forEach { publication ->
+                    Log.d(TAG, "local publication: ${publication.id} ${publication.contentType.name}")
+                }
+            } else {
+                Log.d(TAG, "remote member name: ${roomMember.name}, id: ${roomMember.id}")
+                roomMember.publications.forEach { publication ->
+                    Log.d(TAG, "remote publication: ${publication.id} ${publication.contentType.name}")
+                }
+            }
+            Log.d(TAG, "member: ${roomMember.name}")
         }
         sfuRoom!!.subscriptions.forEach { subscription ->
-            Log.d("App", "subscription: ${subscription.publication.id}")
+            Log.d(TAG, "subscription: ${subscription.publication.id}")
         }
         sfuRoom!!.onMemberListChangedHandler = {
-            Log.d("App", "member list changed, member count is ${sfuRoom!!.members.size}")
+            Log.d(TAG, "member list changed, member count is ${sfuRoom!!.members.size}")
             sfuRoom!!.members.forEach { roomMember ->
-                Log.d("App", "member: ${roomMember.name}")
+                Log.d(TAG, "member: ${roomMember.name}")
             }
         }
         sfuRoom!!.onMemberJoinedHandler = { roomMember ->
-            Log.d("App", "member joined: ${roomMember.name}")
+            Log.d(TAG, "member joined: ${roomMember.name}")
         }
         sfuRoom!!.onMemberLeftHandler = { roomMember ->
-            Log.d("App", "member left: ${roomMember.name}")
+            Log.d(TAG, "member left: ${roomMember.name}")
         }
         sfuRoom!!.onClosedHandler = {
-            Log.d("App", "room closed")
+            Log.d(TAG, "room closed")
         }
         sfuRoom!!.onErrorHandler = { error ->
-            Log.d("App", "room error: ${error.message}")
+            Log.d(TAG, "room error: ${error.message}")
         }
         sfuRoom!!.onPublicationEnabledHandler = { publication ->
-            Log.d("App", "publication enabled: ${publication.id}")
+            Log.d(TAG, "publication enabled: ${publication.id}")
         }
         sfuRoom!!.onPublicationDisabledHandler = { publication ->
-            Log.d("App", "publication disabled: ${publication.id}")
+            Log.d(TAG, "publication disabled: ${publication.id}")
         }
         sfuRoom!!.onPublicationListChangedHandler = {
-            Log.d("App", "publication list changed, publication count is ${sfuRoom!!.publications.size}")
+            Log.d(TAG, "publication list changed, publication count is ${sfuRoom!!.publications.size}")
         }
         sfuRoom!!.onPublicationSubscribedHandler = { subscription ->
-            Log.d("App", "publication subscribed: ${subscription.publication.id}")
+            Log.d(TAG, "publication subscribed: ${subscription.publication.id}")
         }
         sfuRoom!!.onPublicationUnsubscribedHandler = { subscription ->
-            Log.d("App", "publication unsubscribed: ${subscription.publication.id}")
+            Log.d(TAG, "publication unsubscribed: ${subscription.publication.id}")
         }
         sfuRoom!!.onStreamPublishedHandler = { stream ->
-            Log.d("App", "stream published: ${stream.id}")
+            Log.d(TAG, "stream published: ${stream.id} stream type: ${stream.contentType}")
         }
         sfuRoom!!.onStreamUnpublishedHandler = { stream ->
-            Log.d("App", "stream unpublished: ${stream.id}")
+            Log.d(TAG, "stream unpublished: ${stream.id}")
         }
         sfuRoom!!.onSubscriptionListChangedHandler = {
-            Log.d("App", "subscription list changed, subscription count is ${sfuRoom!!.subscriptions.size}")
+            Log.d(TAG, "subscription list changed, subscription count is ${sfuRoom!!.subscriptions.size}")
+        }
+
+        localSfuRoomMember!!.onStreamPublishedHandler = { stream ->
+            Log.d(TAG, "localSfuRoomMember stream published: ${stream.id}")
+        }
+        localSfuRoomMember!!.onStreamUnpublishedHandler = { stream ->
+            Log.d(TAG, "localSfuRoomMember stream unpublished: ${stream.id}")
+        }
+        localSfuRoomMember!!.onSubscriptionListChangedHandler = {
+            Log.d(TAG, "localSfuRoomMember subscription list changed, subscription count is ${localSfuRoomMember!!.subscriptions.size}")
+        }
+        localSfuRoomMember!!.onLeftHandler = {
+            Log.d(TAG, "localSfuRoomMember member left")
+        }
+        localSfuRoomMember!!.onMetadataUpdatedHandler = { metadata ->
+            Log.d(TAG, "localSfuRoomMember metadata updated: ${metadata.toString()}")
+        }
+        localSfuRoomMember!!.onPublicationListChangedHandler = {
+            Log.d(TAG, "localSfuRoomMember publication list changed, publication count is ${localSfuRoomMember!!.publications.size}")
+        }
+        localSfuRoomMember!!.onPublicationSubscribedHandler = { publication ->
+            Log.d(TAG, "localSfuRoomMember publication subscribed: ${publication.id}")
+        }
+        localSfuRoomMember!!.onPublicationUnsubscribedHandler = { publication ->
+            Log.d(TAG, "localSfuRoomMember publication unsubscribed: ${publication.id}")
         }
     }
 
@@ -166,12 +232,11 @@ class RoomViewModel: ViewModel() {
         publication = _localVideoStream.value?.let { localSfuRoomMember?.publish(it, options) }
 
         publication?.onEnabledHandler = {
-            Log.d("App", "publish enabled")
+            Log.d(TAG, "publish enabled")
         }
 
         publication?.onDisabledHandler = {
-            Log.d("App", "publish disabled")
+            Log.d(TAG, "publish disabled")
         }
     }
-
 }

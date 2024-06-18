@@ -3,7 +3,6 @@ package com.ntt.jin.family.ui
 import android.view.ViewGroup
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -20,9 +19,8 @@ import com.ntt.skyway.core.content.sink.SurfaceViewRenderer
 @Composable
 fun RoomLiveScreen(
     roomId: String,
-    roomViewModel: RoomViewModel = RoomViewModel()
+    roomViewModel: RoomViewModel
 ) {
-
     Column(modifier = Modifier.fillMaxSize()) {
         Text("Room Live Screen: $roomId")
         RoomViewRender()
