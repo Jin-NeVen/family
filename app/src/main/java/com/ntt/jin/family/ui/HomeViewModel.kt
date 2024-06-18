@@ -1,5 +1,6 @@
 package com.ntt.jin.family.ui
 
+import android.content.Context
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -43,6 +44,30 @@ class HomeViewModel(
             localUser = userRepository.getLocalUser()
         }
     }
+    suspend fun setupSkyWayContext(context: Context){
+        val option = authTokenRepository.getAuthToken()?.let {
+            SkyWayContext.Options(
+                authToken = it,
+                logLevel = Logger.LogLevel.VERBOSE
+            )
+        }
+        if (option == null) {
+            Log.d("App", "skyway setup failed")
+        }
+        val result =  SkyWayContext.setup(context, option!!)
+        if (result) {
+            loadRooms()
+            Log.d("App", "Setup succeed")
+        }
+    }
+
+    private suspend fun loadRooms() {
+        try {
+            homeUiState = HomeUiState.Loading
+            val rooms = homeRepository.getRooms()
+            homeUiState = HomeUiState.Success(rooms)
+        } catch (e: Exception) {
+            homeUiState = HomeUiState.Error("Failed to load rooms")
         }
     }
 
@@ -56,10 +81,10 @@ class HomeViewModel(
                 extras: CreationExtras
             ): T {
                 val application = checkNotNull(extras[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY])
-
-                val homeRepository = (application as FamilyApplication).homeRepository
                 return HomeViewModel(
-                    homeRepository,
+                    (application as FamilyApplication).homeRepository,
+                    application.userRepository,
+                    application.authTokenRepository
                 ) as T
             }
         }

@@ -45,9 +45,7 @@ class MainActivity : ComponentActivity() {
 
         lifecycleScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                val authToken = (application as FamilyApplication).authTokenRepository.getAuthToken() ?: ""
-                Log.d("App", "authToken: $authToken")
-                setupSkyWayContext(authToken)
+                homeViewModel.setupSkyWayContext(applicationContext)
             }
         }
         setContent {
@@ -56,19 +54,6 @@ class MainActivity : ComponentActivity() {
                     FamilyApp(homeViewModel = homeViewModel)
                 }
             }
-        }
-    }
-
-    //TODO move this function out of activity
-    private suspend fun setupSkyWayContext(authToken: String){
-        val option = SkyWayContext.Options(
-            authToken = authToken,
-            logLevel = Logger.LogLevel.VERBOSE
-        )
-        val result =  SkyWayContext.setup(applicationContext, option)
-        if (result) {
-            homeViewModel.loadRooms()
-            Log.d("App", "Setup succeed")
         }
     }
 }
