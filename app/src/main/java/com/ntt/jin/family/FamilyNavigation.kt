@@ -15,9 +15,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.navArgument
 import com.ntt.jin.family.ui.HomeScreen
 import com.ntt.jin.family.ui.HomeViewModel
 import com.ntt.jin.family.ui.RoomLiveScreen
@@ -77,7 +79,10 @@ fun FamilyNavigation(
             val roomId = backStackEntry.arguments?.getString("roomId")
             // Display the room details screen
             requireNotNull(roomId)
-            RoomLiveScreen(roomId = roomId)
+            RoomLiveScreen(
+                roomId = roomId,
+                roomViewModel = LocalRoomViewModel.current
+            )
         }
     }
 }
