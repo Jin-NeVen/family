@@ -16,8 +16,10 @@ import com.ntt.jin.family.data.User
 fun RoomCardGrid(
     navController: NavController,
     items: List<Room>,
+    homeViewModel: HomeViewModel,
     localUser: User,
 ) {
+    val onlineSfuRoomList = homeViewModel.onlineSfuRoomList
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -28,6 +30,7 @@ fun RoomCardGrid(
                 RoomCard(
                     room = items[index],
                     roomViewModel = LocalRoomViewModel.current,
+                    online = onlineSfuRoomList.any { it.name == items[index].name },
                     navController =  navController,
                     localUser = localUser
                 )

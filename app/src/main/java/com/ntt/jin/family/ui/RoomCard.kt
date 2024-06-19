@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.ntt.jin.family.LocalAppContext
+import com.ntt.jin.family.LocalHomeViewModel
 import com.ntt.jin.family.LocalRoomViewModel
 import com.ntt.jin.family.R
 import com.ntt.jin.family.data.HomeRepositoryImpl
@@ -46,11 +47,13 @@ import java.time.Instant
 fun RoomCard(
     room: Room,
     localUser: User,
+    online: Boolean = false,
     roomViewModel: RoomViewModel,
     navController: NavController,
     modifier: Modifier = Modifier,
 ) {
-    if (roomViewModel.roomJoined) {
+    val homeViewModel = LocalHomeViewModel.current
+    if (homeViewModel.joinedRoomName == room.name) {
         navController.navigate("room/${room.name}")
     }
     Card(
@@ -59,11 +62,13 @@ fun RoomCard(
             .padding(16.dp)
             .clickable(onClick = {
                 //TODO
-                roomViewModel.joinRoom(room.name, localUser.name)
+//                roomViewModel.joinRoom(room.name, localUser.name)
+                homeViewModel.joinRoom(room.name, localUser.name)
             }),
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.LightGray),
+        //onlineかどうかは色で表示
+        colors = CardDefaults.cardColors(containerColor = if (online) Color.Green else Color.LightGray),
     ) {
         Column(
             modifier = Modifier

@@ -18,11 +18,11 @@ import com.ntt.skyway.core.content.sink.SurfaceViewRenderer
 
 @Composable
 fun RoomLiveScreen(
-    roomId: String,
+    roomName: String,
     roomViewModel: RoomViewModel
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
-        Text("Room Live Screen: $roomId")
+        Text("Room Live Screen: $roomName")
         RoomViewRender()
 //        RoomMember(0)
 //        RoomMemberList()
