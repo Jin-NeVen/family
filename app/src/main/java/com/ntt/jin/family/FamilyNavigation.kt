@@ -75,12 +75,12 @@ fun FamilyNavigation(
         composable("contacts") {
             // Display the contacts screen
         }
-        composable("room/{roomId}") { backStackEntry ->
-            val roomId = backStackEntry.arguments?.getString("roomId")
+        composable("room/{roomName}") { backStackEntry ->
+            val roomName = backStackEntry.arguments?.getString("roomName")
             // Display the room details screen
-            requireNotNull(roomId)
+            requireNotNull(roomName)
             RoomLiveScreen(
-                roomId = roomId,
+                roomName = roomName,
                 roomViewModel = LocalRoomViewModel.current
             )
         }

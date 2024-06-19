@@ -22,6 +22,7 @@ fun HomeScreen(
             RoomCardGrid(
                 items = rooms,
                 navController = navController,
+                homeViewModel = homeViewModel,
                 localUser = homeViewModel.localUser
             )
         }

@@ -19,6 +19,9 @@ import com.ntt.jin.family.ui.RoomViewModel
 val LocalAppContext = compositionLocalOf<Context> { error("LocalAppContext not initialized") }
 
 //Notice Since We need to share RoomViewModel in different screens, we use CompositionLocal to pass it
+val LocalHomeViewModel = compositionLocalOf<HomeViewModel> { error("LocalHomeViewModel not initialized") }
+
+//Notice Since We need to share RoomViewModel in different screens, we use CompositionLocal to pass it
 val LocalRoomViewModel = compositionLocalOf<RoomViewModel> { error("LocalRoomViewModel not initialized") }
 
 
@@ -26,6 +29,7 @@ val LocalRoomViewModel = compositionLocalOf<RoomViewModel> { error("LocalRoomVie
 fun FamilyApp(homeViewModel: HomeViewModel) {
     val navController = rememberNavController()
     CompositionLocalProvider(
+        LocalHomeViewModel provides viewModel( factory = HomeViewModel.Factory),
         LocalRoomViewModel provides viewModel( factory = RoomViewModel.Factory),
     ) {
         Scaffold(
