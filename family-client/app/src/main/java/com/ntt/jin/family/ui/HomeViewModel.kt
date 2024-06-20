@@ -16,14 +16,19 @@ import com.ntt.jin.family.data.HomeRepository
 import com.ntt.jin.family.data.RoomListRepository
 import com.ntt.jin.family.data.User
 import com.ntt.jin.family.data.UserRepository
+import com.ntt.jin.family.ui.RoomViewModel.Companion
 import com.ntt.skyway.core.SkyWayContext
+import com.ntt.skyway.core.content.Stream
+import com.ntt.skyway.core.content.remote.RemoteVideoStream
 import com.ntt.skyway.core.util.Logger
+import com.ntt.skyway.room.RoomPublication
 import com.ntt.skyway.room.sfu.SFURoom
 import com.ntt.skyway.room.member.RoomMember
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 
@@ -47,6 +52,10 @@ class HomeViewModel(
     var joinedRoomName by mutableStateOf("")
         private set
 
+    private val _roomVideoStream = MutableStateFlow<RemoteVideoStream?>(null)
+    val roomVideoStream: StateFlow<RemoteVideoStream?> = _roomVideoStream.asStateFlow()
+
+
     //TODO create the localUser in data layer.
     lateinit var localUser: User
 
@@ -61,7 +70,7 @@ class HomeViewModel(
      */
 
     init {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             localUser = userRepository.getLocalUser()
         }
     }
@@ -75,7 +84,9 @@ class HomeViewModel(
         if (option == null) {
             Log.d("App", "skyway setup failed")
         }
-        val result =  SkyWayContext.setup(context, option!!)
+        val result =  SkyWayContext.setup(context, option!!, onErrorHandler = { error ->
+            Log.d("App", "skyway setup failed: ${error.message}")
+        })
         if (result) {
             loadRooms()
             startRoomsStateChecker()
@@ -88,52 +99,51 @@ class HomeViewModel(
             homeUiState = HomeUiState.Loading
             val rooms = homeRepository.getRooms()
             homeUiState = HomeUiState.Success(rooms)
-
-//            val roomNameList = roomListRepository.getRoomNameList()
-//            val tempList = mutableListOf<SFURoom>()
-//            for (roomName in roomNameList) {
-//                val room = SFURoom.find(name = roomName)
-//                if (room != null) {
-//                    room.onClosedHandler = {
-//                        Log.d(TAG, "room closed: ${room.name}")
-//                    }
-//                    tempList.add(room)
-//                }
-//            }
-//            onlineSfuRoomList = tempList
-
-
+            Log.d(TAG, "room count: ${onlineSfuRoomList.size}")
         } catch (e: Exception) {
             homeUiState = HomeUiState.Error("Failed to load rooms")
         }
     }
 
     suspend fun startRoomsStateChecker() {
-        val roomNameList = roomListRepository.getRoomNameList()
         while (true) {
-            // 定期的に実行したい操作
-            //NOTICE
-            // for now, we can only get the room online/offline status when
-            // launching the app since there is no roomCreated handler.
-            // Maybe we can do it in a polling way.
-            val tempList = roomNameList.mapNotNull { roomName ->
-                SFURoom.find(name = roomName)
-            }
-            if (onlineSfuRoomList.size != tempList.size ||
-                onlineSfuRoomList.sortedBy { it.id } == tempList.sortedBy { it.id }) {
-                onlineSfuRoomList = tempList
-            }
+            checkRoomsState()
             // 60秒（60000ミリ秒）待機
             // NOTICE change this value to your desired interval
             delay(10000L)
         }
     }
 
+    // 定期的に実行したい操作
+    //NOTICE
+    // for now, we can only get the room online/offline status when
+    // launching the app since there is no roomCreated handler.
+    // Maybe we can do it in a polling way.
+    suspend fun checkRoomsState() {
+        val roomNameList = roomListRepository.getRoomNameList()
+        val tempList = roomNameList.mapNotNull { roomName ->
+            SFURoom.find(name = roomName)
+        }
+        if (onlineSfuRoomList.size != tempList.size ||
+            onlineSfuRoomList.sortedBy { it.id } == tempList.sortedBy { it.id }) {
+            onlineSfuRoomList = tempList
+        }
+    }
+
     fun joinRoom(roomName: String, memberName: String) {
         viewModelScope.launch {
-            val room = onlineSfuRoomList.find { it.name == roomName }
+            //BUG?
+            //It seems that we cannot use cached SFURoom to call the join function.
+            //So the check here is only for online check,
+            val roomCache = onlineSfuRoomList.find { it.name == roomName }
+            if (roomCache == null) {
+                Log.d(TAG, "cache room $roomName not found, it's offline.")
+                return@launch
+            }
+            //get the SFURoom again for member to join.
+            val room = SFURoom.find(name = roomName)
             if (room == null) {
-                Log.d(TAG, "room $roomName not found")
+                Log.d(TAG, "real room $roomName not found")
                 return@launch
             }
             val localSfuRoomMember = room.join(RoomMember.Init(memberName))
@@ -148,7 +158,18 @@ class HomeViewModel(
             localUser.joinedRoom = room
             localUser.localSFURoomMember = localSfuRoomMember
             setupSfuRoomHandler()
+            //this is used by Navigation.
             joinedRoomName = roomName
+
+//            room.publications.forEach { publication ->
+//                if (publication.contentType == Stream.ContentType.VIDEO) {
+//                    val videoSubscription = localSfuRoomMember.subscribe(publication)
+//                    if (videoSubscription != null) {
+//                        _roomVideoStream.value = videoSubscription.stream as RemoteVideoStream
+//                    }
+//                }
+//            }
+
         }
     }
 
@@ -169,6 +190,7 @@ class HomeViewModel(
                 Log.d(TAG, "local member name: ${roomMember.name}, id: ${roomMember.id}")
                 roomMember.publications.forEach { publication ->
                     Log.d(TAG, "local publication: ${publication.id} ${publication.contentType.name}")
+//                    localUser.localSFURoomMember!!.subscribe(publication)
                 }
             } else {
                 Log.d(TAG, "remote member name: ${roomMember.name}, id: ${roomMember.id}")
