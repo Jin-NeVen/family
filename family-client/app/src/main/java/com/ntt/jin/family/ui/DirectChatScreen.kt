@@ -35,7 +35,8 @@ import com.ntt.skyway.core.content.sink.SurfaceViewRenderer
 fun DirectChatScreen(
     memberName: String,
     directChatViewModel: DirectChatViewModel = viewModel(factory = DirectChatViewModel.Factory),
-    navController: NavHostController) {
+    navController: NavHostController)
+{
     var expanded by remember { mutableStateOf(false) }
     var selectedOption by remember { mutableStateOf("Select Camera") }
     val context = LocalAppContext.current
@@ -91,7 +92,7 @@ fun DirectChatScreen(
                         modifier = Modifier
                             .width(200.dp)
                             .height(300.dp)
-                            .background(Color.Red)
+                            .background(Color.Blue)
                             .padding(16.dp),
                         factory = { renderView },
                     ) { view ->

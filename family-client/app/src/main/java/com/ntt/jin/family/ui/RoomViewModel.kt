@@ -153,10 +153,9 @@ class RoomViewModel(
             }
             sfuRoom.onMemberListChangedHandler = {
                 Log.d(TAG, "member list changed, member count is ${sfuRoom.members.size}")
-                roomMembers = sfuRoom.members.toList()
+                roomMembers = sfuRoom.members.filter { it.name != roomMemberMe.name }
             }
-            roomMembers = sfuRoom.members.toList()
-
+            roomMembers = sfuRoom.members.filter { it.name != roomMemberMe.name }
         }
     }
 

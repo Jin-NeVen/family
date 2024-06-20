@@ -13,6 +13,7 @@ import com.ntt.jin.family.FamilyApplication
 import com.ntt.jin.family.data.UserRepository
 import com.ntt.skyway.core.content.local.LocalVideoStream
 import com.ntt.skyway.core.content.local.source.CameraSource
+import com.ntt.skyway.core.content.remote.RemoteVideoStream
 import com.ntt.skyway.room.p2p.P2PRoom
 import com.ntt.skyway.room.member.RoomMember
 
@@ -42,11 +43,12 @@ class DirectChatViewModel(
     var localVideoStream by mutableStateOf<LocalVideoStream?>(null)
         private set
 
-    var remoteVideoStream by mutableStateOf<LocalVideoStream?>(null)
+    var remoteVideoStream by mutableStateOf<RemoteVideoStream?>(null)
         private set
 
     suspend fun chatWith(context: Context, memberName: String) {
-        val directChatRoomName = "${userRepository.getLocalUser().name}-${memberName}"
+        //TODO this should not be a fixed value
+        val directChatRoomName = "DirectChatRoom"
         Log.d(TAG, "chat room name: $directChatRoomName")
         val p2pRoom = P2PRoom.findOrCreate(directChatRoomName)
         if (p2pRoom == null) {
@@ -58,6 +60,13 @@ class DirectChatViewModel(
             Log.d(TAG, "p2p member join failed")
             return
         }
+        p2pRoom.publications.forEach { publication ->
+            if (publication.publisher?.id == localP2PRoomMember.id) {
+                return@forEach
+            }
+            val subscription = localP2PRoomMember.subscribe(publication)
+            remoteVideoStream = subscription?.stream as RemoteVideoStream
+        }
         val deviceList = CameraSource.getCameras(context).toList()
         deviceList.forEach {
             Log.d(TAG, "camera list: $it")
@@ -67,6 +76,8 @@ class DirectChatViewModel(
         val cameraOption = CameraSource.CapturingOptions(800,800)
         CameraSource.startCapturing(context, deviceList.first(), cameraOption)
         localVideoStream = CameraSource.createStream()
+
+        localP2PRoomMember.publish(localVideoStream!!)
     }
 
     fun changeCamera(videoSource: String) {
