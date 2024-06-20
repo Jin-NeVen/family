@@ -274,8 +274,6 @@ class HomeViewModel(
         }
     }
 
-
-
     companion object {
         val TAG = "HomeViewModel"
         val Factory: ViewModelProvider.Factory = object : ViewModelProvider.Factory{

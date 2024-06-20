@@ -20,6 +20,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
+import com.ntt.jin.family.ui.DirectChatScreen
 import com.ntt.jin.family.ui.HomeScreen
 import com.ntt.jin.family.ui.HomeViewModel
 import com.ntt.jin.family.ui.RoomLiveScreen
@@ -81,9 +82,20 @@ fun FamilyNavigation(
             requireNotNull(roomName)
             RoomLiveScreen(
                 roomName = roomName,
-                roomViewModel = LocalRoomViewModel.current
+                roomViewModel = LocalRoomViewModel.current,
+                navController = navController,
             )
         }
+        composable("member/{memberName}") { backStackEntry ->
+            val memberName = backStackEntry.arguments?.getString("memberName")
+            // Display the room details screen
+            requireNotNull(memberName)
+            DirectChatScreen(
+                memberName,
+                navController = navController,
+            )
+        }
+
     }
 }
 

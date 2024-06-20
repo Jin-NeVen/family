@@ -61,7 +61,7 @@ fun RoomLiveScreen(
                 MemberItem(
                     member = member,
                     onClick = {
-                        navController.navigate("member/${member.id}")
+                        navController.navigate("member/${member.name}")
                     }
                 )
             }
