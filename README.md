@@ -1,31 +1,34 @@
-# family
-A family support app implemented with SkyWay Android SDK
+# 概要
 
-## 概要
-家族支援アプリ
+# How To Run
+## 1. SkyWay Auth Token の更新
+1. SkyWay Console にて、アプリ登録してください
+2. skyway_token_generater/token.jsを開き、アプリ登録した際に得られた AppID と SecretKey を 書き換えてください
+3. コンソールで node token.js を実行し、アプリを動かすためのSkyWay Auth Tokenが、app/src/main/res/raw/auth_token.txt に更新されます
 
-## 目的
+### 注意点
+生成されたAuth Tokenの有効期限は一日です。有効期限を延びたい場合、
+- 再度node token.jsを生成し直して、有効期限を一日にreflashする
+- token.jsの `exp` の時間を調整する
 
-現代社会で諸手続きの電子化は進んでます。スマホがあれば自宅でいろいろできちゃいます。ですがおばーちゃん世代には、スマホ操作がよくわからない人がいます。また、これらの諸電子手続きは秘密情報が多く、身内以外の人には漏れたくないです。これらの人に、自分のスマホ画面を家族に共有しながら、家族と通話し指示をうけることで、スマホ音痴でも自宅でいろんな電子手続きができちゃいます。
+## 2. 擬似サーバを起動
+以下のコマンドを実行すると、Serverが立ち上げ、Browserよりアクセス可能なURLが表示されます。
+```
+cd family-server
+npm run dev
+```
+Browserにて、CLIで得られたURLを開きます。
 
-また、部屋にスマホ※を設置するだけで、外出中でも簡単に家の状況を確認することができちゃいます。子育てや老人ケアに支援します。
+room nameを設定し、joinをクリックすると、該当Roomが作られ、online状態になります
+設定できる room nameは、Android側のサンプルアプリと連動するため、以下の五つでお願いします
+- LivingRoom
+- BedRoom
+- Kitchen
+- BabyRoom
+- PetRoom
 
-※ 今回はAndoridSDKのonboardingなので、ひとまずスマホに限定していますが、本来の想定は、SkyWayの各種SDKが組み込まれたカメラとマイク付きのデバイス。
+### 注意点
+- joinボタン押した後に、配信止めたい場合必ずcloseボタンをクリックしてください
 
-## 機能
-### 部屋監視機能
-TBA
-
-### スマホ画面共有機能
-TBA
-
-## How To Run
-- Quick Startで紹介された SkyWay Auth Tokenを生成ツール token.jsよりtokenを生成し、　Family/app/src/main/res/raw/auth_token.txt ファイルの内容を更新する
-- ビルドして実行
-
-### 補足 - 部屋監視機能について
-- 「監視カメラ稼働中の部屋を入室できる」と想定していたため、監視カメラ稼働してない部屋には入室できません。
-- 「監視カメラ稼働中の部屋」を作るには、Familyアプリ以外のSyWay SDKが組み込まれたアプリを利用し、以下の名前でSFURoomを作成してVideo/AudioをPublishする。そうすれば、Familyアプリ経由で各配信中の部屋を入室することが可能になります
-
-## その他
-TBA
+## 3. Androidサンプルアプリ起動
+基本的にそのままビルド&実行可能。
