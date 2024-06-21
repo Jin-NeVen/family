@@ -2,13 +2,16 @@ const fs = require('fs');
 const path = require('path');
 const { SkyWayAuthToken, uuidV4 } = require("@skyway-sdk/token");
 
+const appId = "ここにアプリケーションIDをペーストしてください"
+const secretKey = "ここにシークレットキーをペーストしてください"
+
 const token = new SkyWayAuthToken({
   jti: uuidV4(),
   iat: Math.floor(Date.now() / 1000),
   exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24,
   scope: {
     app: {
-      id: "ここにアプリケーションIDをペーストしてください",
+      id: appId,
       turn: true,
       actions: ["read"],
       channels: [
@@ -43,7 +46,7 @@ const token = new SkyWayAuthToken({
       ],
     },
   },
-}).encode("ここにシークレットキーをペーストしてください");
+}).encode(secretKey);
 console.log(token);
 
 const filePath = path.join(__dirname, '../family-client/app/src/main/res/raw/auth_token.txt');
