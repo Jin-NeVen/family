@@ -8,6 +8,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import com.ntt.jin.family.FamilyApplication
 import com.ntt.jin.family.data.UserRepository
@@ -16,6 +17,11 @@ import com.ntt.skyway.core.content.local.source.CameraSource
 import com.ntt.skyway.core.content.remote.RemoteVideoStream
 import com.ntt.skyway.room.p2p.P2PRoom
 import com.ntt.skyway.room.member.RoomMember
+import com.ntt.skyway.room.p2p.LocalP2PRoomMember
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class DirectChatViewModel(
     private val userRepository: UserRepository,
@@ -46,6 +52,8 @@ class DirectChatViewModel(
     var remoteVideoStream by mutableStateOf<RemoteVideoStream?>(null)
         private set
 
+    var localP2PRoomMember: LocalP2PRoomMember? = null
+
     suspend fun chatWith(context: Context, memberName: String) {
         //TODO this should not be a fixed value
         val directChatRoomName = "DirectChatRoom"
@@ -55,16 +63,19 @@ class DirectChatViewModel(
             Log.d(TAG, "p2p room not created/found")
             return
         }
-        val localP2PRoomMember = p2pRoom!!.join(RoomMember.Init(memberName))
+        localP2PRoomMember = p2pRoom!!.join(RoomMember.Init(memberName))
         if (localP2PRoomMember == null) {
             Log.d(TAG, "p2p member join failed")
             return
         }
+        localP2PRoomMember!!.onLeftHandler = {
+            Log.d(TAG, "${localP2PRoomMember!!.name} p2p member left")
+        }
         p2pRoom.publications.forEach { publication ->
-            if (publication.publisher?.id == localP2PRoomMember.id) {
+            if (publication.publisher?.id == localP2PRoomMember!!.id) {
                 return@forEach
             }
-            val subscription = localP2PRoomMember.subscribe(publication)
+            val subscription = localP2PRoomMember!!.subscribe(publication)
             remoteVideoStream = subscription?.stream as RemoteVideoStream
         }
         val deviceList = CameraSource.getCameras(context).toList()
@@ -77,11 +88,34 @@ class DirectChatViewModel(
         CameraSource.startCapturing(context, deviceList.first(), cameraOption)
         localVideoStream = CameraSource.createStream()
 
-        localP2PRoomMember.publish(localVideoStream!!)
+        localP2PRoomMember!!.publish(localVideoStream!!)
     }
 
     fun changeCamera(videoSource: String) {
         CameraSource.changeCamera(videoSource)
+    }
+
+    fun exit() {
+        CoroutineScope(Dispatchers.IO).launch {
+            Log.d(TAG, "exit directChatScreen")
+            CameraSource.stopCapturing()
+            remoteVideoStream?.removeAllRenderer()
+            remoteVideoStream?.dispose()
+            localVideoStream?.removeAllRenderer()
+            localVideoStream?.dispose()
+            if (localP2PRoomMember != null) {
+                Log.d(TAG, "call leave room")
+                localP2PRoomMember!!.leave()
+            } else {
+                Log.d(TAG, "localP2PRoomMember is null")
+            }
+        }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        Log.d(TAG, "onCleared")
+        exit()
     }
 
 }
