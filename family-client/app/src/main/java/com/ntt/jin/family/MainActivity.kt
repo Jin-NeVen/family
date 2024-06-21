@@ -2,6 +2,7 @@ package com.ntt.jin.family
 
 import android.os.Bundle
 import android.util.Log
+import android.Manifest
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -18,6 +19,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.ntt.jin.family.data.AuthTokenRepository
+import com.ntt.jin.family.domain.CheckPermissionsUseCase
 import com.ntt.jin.family.ui.HomeViewModel
 import com.ntt.jin.family.ui.theme.FamilyTheme
 import com.ntt.skyway.core.SkyWayContext
@@ -30,7 +32,7 @@ import kotlinx.coroutines.launch
 class MainActivity : ComponentActivity() {
 
     private val homeViewModel: HomeViewModel by viewModels { HomeViewModel.Factory }
-
+    private val checkPermissionsUseCase: CheckPermissionsUseCase = CheckPermissionsUseCase()
 
     @Composable
     fun FamilyApplicationProvider(content: @Composable () -> Unit) {
@@ -42,6 +44,11 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 //        enableEdgeToEdge()
+
+        checkPermissionsUseCase(this, listOf(
+            Manifest.permission.CAMERA,
+            Manifest.permission.RECORD_AUDIO
+        ))
 
         lifecycleScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
