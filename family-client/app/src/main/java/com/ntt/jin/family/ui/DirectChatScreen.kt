@@ -1,5 +1,6 @@
 package com.ntt.jin.family.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,6 +31,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.ntt.jin.family.LocalAppContext
 import com.ntt.skyway.core.content.sink.SurfaceViewRenderer
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @Composable
 fun DirectChatScreen(
@@ -37,6 +40,11 @@ fun DirectChatScreen(
     directChatViewModel: DirectChatViewModel = viewModel(factory = DirectChatViewModel.Factory),
     navController: NavHostController)
 {
+//    BackHandler {
+//        directChatViewModel.exit()
+//        navController.popBackStack()
+//    }
+
     var expanded by remember { mutableStateOf(false) }
     var selectedOption by remember { mutableStateOf("Select Camera") }
     val context = LocalAppContext.current
@@ -44,7 +52,10 @@ fun DirectChatScreen(
     val localVideoStream = directChatViewModel.localVideoStream
     val remotedVideoStream = directChatViewModel.remoteVideoStream
     LaunchedEffect(Unit) {
-        directChatViewModel.chatWith(context, memberName)
+        //NOTICE if we run this in main thread, when server response gets latency, it would cause crash
+        withContext(Dispatchers.IO) {
+            directChatViewModel.chatWith(context, memberName)
+        }
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
