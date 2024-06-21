@@ -114,7 +114,7 @@ class RoomViewModel(
     }
 
     fun leaveRoom() {
-
+        Log.d(TAG, "leaveRoom is called")
     }
 
     fun switchCamera() {

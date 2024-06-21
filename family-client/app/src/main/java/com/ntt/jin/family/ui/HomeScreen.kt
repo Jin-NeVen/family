@@ -17,7 +17,7 @@ fun HomeScreen(
             Text("Loading...")
         }
         is HomeUiState.Success -> {
-            val rooms = (homeUiState as HomeUiState.Success).rooms
+            val rooms = homeUiState.rooms
             // Display the list of rooms
             RoomCardGrid(
                 items = rooms,

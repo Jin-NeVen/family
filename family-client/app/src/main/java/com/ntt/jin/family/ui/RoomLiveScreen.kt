@@ -1,6 +1,7 @@
 package com.ntt.jin.family.ui
 
 import android.view.ViewGroup
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -24,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavHostController
 import com.ntt.jin.family.LocalAppContext
+import com.ntt.jin.family.LocalHomeViewModel
 import com.ntt.skyway.core.content.remote.RemoteVideoStream
 import com.ntt.skyway.core.content.sink.SurfaceViewRenderer
 import com.ntt.skyway.room.RoomSubscription
@@ -34,6 +36,11 @@ fun RoomLiveScreen(
     roomViewModel: RoomViewModel,
     navController: NavHostController
 ) {
+    val homeViewModel = LocalHomeViewModel.current
+    BackHandler {
+        homeViewModel.leaveRoom()
+        navController.navigate("home")
+    }
     val context = LocalAppContext.current
     val remoteVideoStream = roomViewModel.remoteRoomVideoStream
     val memberList = roomViewModel.roomMembers
@@ -67,37 +74,4 @@ fun RoomLiveScreen(
             }
         }
     }
-
-//        if (roomViewModel.roomVideoSubscription != null) {
-//            RoomViewRender(roomViewModel.roomVideoSubscription!!)
-//        }
-//        RoomMember(0)
-//        RoomMemberList()
-//    }
-
-}
-
-@Composable
-fun RoomViewRender(roonVideoSubscription: RoomSubscription) {
-    val context = LocalAppContext.current
-    AndroidView(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(180.dp)
-            .background(Color.Red)
-            .padding(16.dp),
-        factory = {
-            SurfaceViewRenderer(context).apply {
-                layoutParams = ViewGroup.LayoutParams(
-                    (ViewGroup.LayoutParams.MATCH_PARENT),
-                    (ViewGroup.LayoutParams.MATCH_PARENT)
-                )
-            }
-        },
-        update = {
-            it.setup()
-            (roonVideoSubscription.stream as RemoteVideoStream).addRenderer(it)
-        }
-    )
-
 }

@@ -173,6 +173,15 @@ class HomeViewModel(
         }
     }
 
+    fun leaveRoom() {
+        viewModelScope.launch {
+            joinedRoomName = ""
+            localUser.localSFURoomMember?.let {
+                it.leave()
+            }
+        }
+    }
+
     fun setupSfuRoomHandler() {
         if (localUser.joinedRoom == null) {
             //TODO join room failed

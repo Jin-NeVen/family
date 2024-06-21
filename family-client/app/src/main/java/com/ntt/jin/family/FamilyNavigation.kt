@@ -1,5 +1,6 @@
 package com.ntt.jin.family
 
+import android.util.Log
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -68,6 +69,7 @@ fun FamilyNavigation(
         modifier = Modifier.padding(innerPadding)
     ) {
         composable("home") {
+            Log.d("FamilyNavigation", "home")
             HomeScreen(
                 homeViewModel = homeViewModel,
                 navController = navController,
@@ -77,6 +79,7 @@ fun FamilyNavigation(
             // Display the contacts screen
         }
         composable("room/{roomName}") { backStackEntry ->
+            Log.d("FamilyNavigation", "room name: ${backStackEntry.arguments?.getString("roomName")}")
             val roomName = backStackEntry.arguments?.getString("roomName")
             // Display the room details screen
             requireNotNull(roomName)
@@ -87,6 +90,7 @@ fun FamilyNavigation(
             )
         }
         composable("member/{memberName}") { backStackEntry ->
+            Log.d("FamilyNavigation", "member name: ${backStackEntry.arguments?.getString("memberName")}")
             val memberName = backStackEntry.arguments?.getString("memberName")
             // Display the room details screen
             requireNotNull(memberName)

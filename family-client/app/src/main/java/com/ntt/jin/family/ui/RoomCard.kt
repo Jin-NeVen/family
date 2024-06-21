@@ -89,7 +89,8 @@ fun RoomCard(
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            if (remoteVideoStream != null) {
+            //TODO fixme!
+            if (remoteVideoStream != null && room.name == homeViewModel.joinedRoomName) {
                 Log.d("RoomCard", "remoteVideoStream is not null")
                 val renderView = SurfaceViewRenderer(context)
                 renderView.setup()
