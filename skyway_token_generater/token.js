@@ -8,7 +8,7 @@ const token = new SkyWayAuthToken({
   exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24,
   scope: {
     app: {
-      id: "b72ba745-4f87-48e5-a823-fa3107440350",
+      id: "ここにアプリケーションIDをペーストしてください",
       turn: true,
       actions: ["read"],
       channels: [
@@ -43,7 +43,7 @@ const token = new SkyWayAuthToken({
       ],
     },
   },
-}).encode("q8RiV/151sRx/H2tTfkTIA2E51Dy1mrBWhqxePzsAKg=");
+}).encode("ここにシークレットキーをペーストしてください");
 console.log(token);
 
 const filePath = path.join(__dirname, '../family-client/app/src/main/res/raw/auth_token.txt');
