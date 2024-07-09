@@ -66,6 +66,7 @@ class DirectChatViewModel(
     var localP2PRoomMember: LocalP2PRoomMember? = null
 
     private fun captureLocalVideoSteam(context: Context) {
+        Log.d(TAG, "captureLocalVideoSteam")
         val cameraList = CameraSource.getCameras(context).toList()
         cameraList.forEach {
             Log.d(TAG, "camera list: $it")
@@ -76,11 +77,13 @@ class DirectChatViewModel(
         localVideoStream = CameraSource.createStream()
     }
     private fun captureLocalAudioStream() {
+        Log.d(TAG, "captureLocalAudioStream")
         AudioSource.start()
         localAudioStream = AudioSource.createStream()
     }
 
     private suspend fun createRoom() {
+        Log.d(TAG, "createRoom")
         val directChatRoomName = "DirectChatRoom"
         p2pRoom = P2PRoom.findOrCreate(directChatRoomName)
     }
@@ -94,6 +97,7 @@ class DirectChatViewModel(
         if (localP2PRoomMember == null) {
             Log.d(TAG, "p2p member join failed")
         }
+        Log.d(TAG, "p2p member $localMemberName joined")
     }
 
     private suspend fun publishLocalAVStream() {
@@ -103,10 +107,11 @@ class DirectChatViewModel(
         }
         localP2PRoomMember!!.publish(localVideoStream!!)
         localP2PRoomMember!!.publish(localAudioStream!!)
+        Log.d(TAG, "localP2PRoomMember published AVStream")
     }
 
     private var streamPublishedHandler: ((publication: RoomPublication) -> Unit)? = {
-        Log.d(TAG, "stream published: ${it.id}")
+        Log.d(TAG, " subscribe stream by P2PRoom's streamPublishedHandler): ${it.id}")
         subscribeRemoteAVStreamInternal(it)
     }
 
@@ -138,9 +143,26 @@ class DirectChatViewModel(
             return
         }
         p2pRoom!!.publications.forEach { publication ->
+            Log.d(TAG, "subscribe stream directly by p2pRoom publications: ${publication.id}")
             subscribeRemoteAVStreamInternal(publication)
         }
         p2pRoom!!.onStreamPublishedHandler = streamPublishedHandler
+        if (localP2PRoomMember == null) {
+            return
+        }
+        localP2PRoomMember!!.onStreamUnpublishedHandler = Handler@{
+            Log.d(TAG, "streamUnpublishedHandler stream unpublished: ${it.id}")
+            it.stream?.let { stream ->
+                if (stream.contentType == Stream.ContentType.VIDEO) {
+                    remoteVideoStream?.removeAllRenderer()
+                    remoteVideoStream?.dispose()
+                    remoteVideoStream = null
+                } else if (stream.contentType == Stream.ContentType.AUDIO) {
+                    remoteAudioStream?.dispose()
+                    remoteAudioStream = null
+                }
+            }
+        }
     }
 
     fun startDirectChat(context: Context, memberName: String) {
@@ -202,16 +224,18 @@ class DirectChatViewModel(
         CameraSource.changeCamera(videoSource)
     }
 
-    fun exit() {
-        CoroutineScope(Dispatchers.IO).launch {
+    private fun cleanUp() {
+        CoroutineScope(Dispatchers.Default).launch {
             Log.d(TAG, "exit directChatScreen")
             CameraSource.stopCapturing()
             AudioSource.stop()
             if (localP2PRoomMember != null) {
                 localP2PRoomMember!!.publications.forEach { roomPublication ->
+                    Log.d(TAG, "unpublish: ${roomPublication.id}")
                     localP2PRoomMember!!.unpublish(roomPublication)
                 }
                 localP2PRoomMember!!.subscriptions.forEach { roomSubscription ->
+                    Log.d(TAG, "unsubscribe: ${roomSubscription.id}")
                     localP2PRoomMember!!.unsubscribe(roomSubscription.id)
                 }
             }
@@ -237,7 +261,7 @@ class DirectChatViewModel(
     override fun onCleared() {
         super.onCleared()
         Log.d(TAG, "onCleared")
-        exit()
+        cleanUp()
     }
 
 }
