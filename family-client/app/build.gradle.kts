@@ -62,18 +62,22 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.navigation.compose)
 
-    // skyway
-    implementation(files("libs/libwebrtc.aar"))
-    implementation(files("libs/skyway-core.aar"))
-    implementation(files("libs/skyway-sfubot.aar"))
-    implementation(files("libs/skyway-room.aar"))
+//    // skyway
+//    implementation(files("libs/libwebrtc.aar"))
+//    implementation(files("libs/skyway-core.aar"))
+//    implementation(files("libs/skyway-sfubot.aar"))
+//    implementation(files("libs/skyway-room.aar"))
+//
+//    // WebSocket
+//    implementation(libs.okhttp)
+//    implementation(libs.logging.interceptor)
+//
+//    // gson
+//    implementation(libs.gson)
 
-    // WebSocket
-    implementation(libs.okhttp)
-    implementation(libs.logging.interceptor)
-
-    // gson
-    implementation(libs.gson)
+    implementation(libs.skyway.room)
+    implementation(libs.androidx.fragment.ktx)
+    implementation(libs.androidx.core.splashscreen)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
