@@ -19,8 +19,10 @@ import com.ntt.jin.family.data.UserRepository
 import com.ntt.jin.family.ui.RoomViewModel.Companion
 import com.ntt.skyway.core.SkyWayContext
 import com.ntt.skyway.core.content.Stream
+import com.ntt.skyway.core.content.local.source.CameraSource
 import com.ntt.skyway.core.content.remote.RemoteVideoStream
 import com.ntt.skyway.core.util.Logger
+import com.ntt.skyway.room.Room
 import com.ntt.skyway.room.RoomPublication
 import com.ntt.skyway.room.sfu.SFURoom
 import com.ntt.skyway.room.member.RoomMember
@@ -38,12 +40,9 @@ class HomeViewModel(
     private val authTokenRepository: AuthTokenRepository,
     private val roomListRepository: RoomListRepository,
 ) : ViewModel(){
-//    private val _homeUiState = MutableStateFlow<HomeUiState>(HomeUiState.Loading)
-//    val homeUiState: StateFlow<HomeUiState> = _homeUiState
-    var homeUiState by mutableStateOf<HomeUiState>(HomeUiState.Loading)
-        private set
+    var isSkyWayInitialized by mutableStateOf(false)
 
-    var roomJoined by mutableStateOf(false)
+    var homeUiState by mutableStateOf<HomeUiState>(HomeUiState.Loading)
         private set
 
     var onlineSfuRoomList by mutableStateOf<List<SFURoom>>(emptyList())
@@ -52,39 +51,50 @@ class HomeViewModel(
     var joinedRoomName by mutableStateOf("")
         private set
 
-    private val _roomVideoStream = MutableStateFlow<RemoteVideoStream?>(null)
-    val roomVideoStream: StateFlow<RemoteVideoStream?> = _roomVideoStream.asStateFlow()
-
-
     //TODO create the localUser in data layer.
     lateinit var localUser: User
-
-    //TODO maybe I should create a SFURoom list here.
-    /*
-    private val _rooms = MutableStateFlow<List<SFURoom>>(emptyList())
-    val rooms: StateFlow<List<SFURoom>> = _rooms
-    SFURoom.find(roomId)
-    if SFURoom is not null
-    add sfuroom to _rooms
-    then update the state, which will trigger the recomposition
-     */
 
     init {
         viewModelScope.launch {
             localUser = userRepository.getLocalUser()
         }
     }
-    suspend fun setupSkyWayContext(context: Context){
+
+    fun setupSkyWayContext(applicationContext: Context) {
+        viewModelScope.launch {
+            // ServerよりSkyWay Auth Tokenを取得し、SkyWayContext.Optionsにセット
+            val option = authTokenRepository.getAuthToken()?.let {
+                SkyWayContext.Options(
+                    authToken = it,
+                    logLevel = Logger.LogLevel.VERBOSE
+                )
+            }
+
+            // SkyWay Auth Token取得失敗した場合、SkyWayの初期化は行わない
+            // 必要に応じてAuth Token再取得するるか、エラーメッセージをユーザに表示するか
+            if (option == null) {
+                Log.d("App", "skyway setup failed")
+            }
+            isSkyWayInitialized =  SkyWayContext.setup(applicationContext, option!!, onErrorHandler = { error ->
+                Log.d("App", "skyway setup failed: ${error.message}")
+            })
+        }
+    }
+    suspend fun setupSkyWayContext2(applicationContext: Context){
+        // ServerよりSkyWay Auth Tokenを取得し、SkyWayContext.Optionsにセット
         val option = authTokenRepository.getAuthToken()?.let {
             SkyWayContext.Options(
                 authToken = it,
                 logLevel = Logger.LogLevel.VERBOSE
             )
         }
+
+        // SkyWay Auth Token取得失敗した場合、SkyWayの初期化は行わない
+        // 必要に応じてAuth Token再取得するるか、エラーメッセージをユーザに表示するか
         if (option == null) {
             Log.d("App", "skyway setup failed")
         }
-        val result =  SkyWayContext.setup(context, option!!, onErrorHandler = { error ->
+        val result =  SkyWayContext.setup(applicationContext, option!!, onErrorHandler = { error ->
             Log.d("App", "skyway setup failed: ${error.message}")
         })
         if (result) {
@@ -92,6 +102,10 @@ class HomeViewModel(
             startRoomsStateChecker()
             Log.d("App", "Setup succeed")
         }
+    }
+
+    fun cleanUp() {
+        SkyWayContext.dispose()
     }
 
     private suspend fun loadRooms() {
@@ -105,12 +119,16 @@ class HomeViewModel(
         }
     }
 
-    suspend fun startRoomsStateChecker() {
-        while (true) {
-            checkRoomsState()
-            // 60秒（60000ミリ秒）待機
-            // NOTICE change this value to your desired interval
-            delay(10000L)
+    fun startRoomsStateChecker() {
+        Log.d(TAG, "startRoomsStateChecker")
+        viewModelScope.launch {
+            loadRooms()
+            while (true) {
+                checkRoomsState()
+                // 60秒（60000ミリ秒）待機
+                // NOTICE change this value to your desired interval
+                delay(60000L)
+            }
         }
     }
 
@@ -119,7 +137,7 @@ class HomeViewModel(
     // for now, we can only get the room online/offline status when
     // launching the app since there is no roomCreated handler.
     // Maybe we can do it in a polling way.
-    suspend fun checkRoomsState() {
+    private suspend fun checkRoomsState() {
         val roomNameList = roomListRepository.getRoomNameList()
         val tempList = roomNameList.mapNotNull { roomName ->
             SFURoom.find(name = roomName)
@@ -160,15 +178,6 @@ class HomeViewModel(
             setupSfuRoomHandler()
             //this is used by Navigation.
             joinedRoomName = roomName
-
-//            room.publications.forEach { publication ->
-//                if (publication.contentType == Stream.ContentType.VIDEO) {
-//                    val videoSubscription = localSfuRoomMember.subscribe(publication)
-//                    if (videoSubscription != null) {
-//                        _roomVideoStream.value = videoSubscription.stream as RemoteVideoStream
-//                    }
-//                }
-//            }
 
         }
     }
@@ -281,6 +290,11 @@ class HomeViewModel(
         localUser.localSFURoomMember!!.onPublicationUnsubscribedHandler = { publication ->
             Log.d(TAG, "localSfuRoomMember publication unsubscribed: ${publication.id}")
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        SkyWayContext.dispose()
     }
 
     companion object {
