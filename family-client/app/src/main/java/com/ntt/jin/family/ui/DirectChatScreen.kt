@@ -1,5 +1,6 @@
 package com.ntt.jin.family.ui
 
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -17,6 +18,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -31,6 +33,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.ntt.jin.family.LocalAppContext
+import com.ntt.jin.family.ui.DirectChatViewModel.Companion.TAG
 import com.ntt.skyway.core.content.sink.SurfaceViewRenderer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -54,71 +57,70 @@ fun DirectChatScreen(
 //        withContext(Dispatchers.Default) {
 //            directChatViewModel.chatWith(context, memberName)
 //        }
+        Log.d(TAG, "DirectChatScreen launched")
         directChatViewModel.startDirectChat(applicationContext, memberName)
     }
 
+    DisposableEffect(Unit) {
+        onDispose {
+            Log.d(TAG, "DirectChatScreen onDispose")
+        }
+    }
+
+
     Column(modifier = Modifier.fillMaxSize()) {
         Text("Direct Chat Room: $memberName")
-        Box(modifier = Modifier.fillMaxSize()) {
-            remotedVideoStream?.let {
-                val renderView = SurfaceViewRenderer(context)
-                AndroidView(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(600.dp)
-                        .background(Color.Red)
-                        .padding(16.dp),
-                    factory = { renderView },
-                ) { view ->
-                    renderView.setup()
-                    it.addRenderer(view)
-                }
+        localVideoStream?.let {
+            val renderView = SurfaceViewRenderer(context)
+            AndroidView(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(250.dp)
+                    .background(Color.Blue)
+                    .padding(16.dp),
+                factory = { renderView },
+            ) { view ->
+                renderView.setup()
+                it.addRenderer(view)
             }
-            Column(modifier = Modifier.align(Alignment.BottomEnd)) {
-                Text(text = "Selected: $selectedOption")
-                Button(onClick = { expanded = true }) {
-                    Text(text = "Show Menu")
-                }
-                DropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = {
-                        expanded = false
-                    }
-                ) {
-                    localVideoSources.forEach { videoSource ->
-                        DropdownMenuItem(
-                            text = { Text(videoSource) },
-                            onClick = {
-                                selectedOption = videoSource
-                                expanded = false
-                                directChatViewModel.changeCamera(videoSource)
-                            }
-                        )
-                    }
-                }
-                localVideoStream?.let {
-                    val renderView = SurfaceViewRenderer(context)
-                    AndroidView(
-                        modifier = Modifier
-                            .width(200.dp)
-                            .height(300.dp)
-                            .background(Color.Blue)
-                            .padding(16.dp),
-                        factory = { renderView },
-                    ) { view ->
-                        renderView.setup()
-                        it.addRenderer(view)
-                    }
-                }
-            }
-
         }
-        Box(
-            modifier = Modifier
-                .width(200.dp)
-                .align(Alignment.Start)
-        ) {
+        remotedVideoStream?.let {
+            val renderView = SurfaceViewRenderer(context)
+            AndroidView(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(250.dp)
+                    .background(Color.Red)
+                    .padding(16.dp),
+                factory = { renderView },
+            ) { view ->
+                renderView.setup()
+                it.addRenderer(view)
+            }
+        }
 
+        Row() {
+            Text(text = "Selected: $selectedOption")
+            Button(onClick = { expanded = true }) {
+                Text(text = "Show Menu")
+            }
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = {
+                    expanded = false
+                }
+            ) {
+                localVideoSources.forEach { videoSource ->
+                    DropdownMenuItem(
+                        text = { Text(videoSource) },
+                        onClick = {
+                            selectedOption = videoSource
+                            expanded = false
+                            directChatViewModel.changeCamera(videoSource)
+                        }
+                    )
+                }
+            }
         }
     }
 }
