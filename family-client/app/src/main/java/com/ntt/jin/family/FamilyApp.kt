@@ -33,7 +33,7 @@ fun FamilyApp(homeViewModel: HomeViewModel) {
         LocalRoomViewModel provides viewModel( factory = RoomViewModel.Factory),
     ) {
         Scaffold(
-            bottomBar = { BottomNavigationBar(navController) },
+//            bottomBar = { BottomNavigationBar(navController) },
             content = { innerPadding ->
                 FamilyNavigation(
                     homeViewModel = homeViewModel,
