@@ -2,4 +2,9 @@
 <resources>
 
     <style name="Theme.Family" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.Family.MySplash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/purple_200</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="postSplashScreenTheme">@style/Theme.SplashScreen</item>
+    </style>
 </resources>

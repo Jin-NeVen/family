@@ -19,7 +19,8 @@ npm run dev
 ```
 Browserにて、CLIで得られたURLを開きます。
 
-room nameを設定し、joinをクリックすると、該当Roomが作られ、online状態になります
+room nameを設定し、joinをクリックすると、該当Roomが作られ、online状態になります。
+
 設定できる room nameは、Android側のサンプルアプリと連動するため、以下の五つでお願いします
 - LivingRoom
 - BedRoom

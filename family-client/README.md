@@ -2,8 +2,9 @@
 SkyWay SFURoom APIとP2PRoom APIを試すアプリとなります
 
 # 機能
-## 部屋のonlne状況チェック
-family-serverと連動する
+## 部屋のonline状況チェック
+family-serverと連動しているため、先にfamily-serverの方に、Room配信を開始する必要があります。
+
 | online部屋がない場合 | LivingRoomがonlineの場合 | LivingRoom&BabyRoomがonlineの場合 |
 | -- | --| --|
 | ![offline](./screenshot/offline.png) | ![online-1](./screenshot/online-1.png) | ![online-2](./screenshot/online-2.png)
