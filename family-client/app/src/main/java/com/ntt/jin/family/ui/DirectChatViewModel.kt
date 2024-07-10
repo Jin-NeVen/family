@@ -75,7 +75,7 @@ class DirectChatViewModel(
         }
     }
 
-    private fun captureLocalVideoSteam(context: Context) {
+    private suspend fun captureLocalVideoSteam(context: Context) {
         Log.d(TAG, "captureLocalVideoSteam")
         val cameraList = CameraSource.getCameras(context).toList()
         cameraList.forEach {
@@ -84,7 +84,9 @@ class DirectChatViewModel(
         localVideoSources = cameraList
         val cameraOption = CameraSource.CapturingOptions(800,800)
         CameraSource.startCapturing(context, cameraList.first(), cameraOption)
-        localVideoStream = CameraSource.createStream()
+        withContext(Dispatchers.Main) {
+            localVideoStream = CameraSource.createStream()
+        }
     }
     private fun captureLocalAudioStream() {
         Log.d(TAG, "captureLocalAudioStream")
@@ -196,10 +198,12 @@ class DirectChatViewModel(
                 Log.d(TAG, "subscription stream is null")
                 return@launch
             }
-            subscription?.stream?.let { stream ->
+            subscription.stream?.let { stream ->
                 Log.d(TAG, "subscription id: ${subscription.id}, subscription stream id: ${stream.id}")
                 if (stream.contentType == Stream.ContentType.VIDEO) {
-                    remoteVideoStream = subscription.stream as RemoteVideoStream
+                    withContext(Dispatchers.Main) {
+                        remoteVideoStream = subscription.stream as RemoteVideoStream
+                    }
                 }
                 if (stream.contentType == Stream.ContentType.AUDIO) {
                     remoteAudioStream = subscription.stream as RemoteAudioStream
@@ -248,50 +252,6 @@ class DirectChatViewModel(
             publishLocalAVStream()
             subscribeRemoteAVStream()
         }
-    }
-
-    suspend fun chatWith(context: Context, memberName: String) {
-        //TODO this should not be a fixed value
-        val directChatRoomName = "DirectChatRoom"
-        Log.d(TAG, "chat room name: $directChatRoomName")
-        p2pRoom = P2PRoom.findOrCreate(directChatRoomName)
-        if (p2pRoom == null) {
-            Log.d(TAG, "p2p room not created/found")
-            return
-        }
-        localP2PRoomMember = p2pRoom!!.join(RoomMember.Init(memberName))
-        if (localP2PRoomMember == null) {
-            Log.d(TAG, "p2p member join failed")
-            return
-        }
-        localP2PRoomMember!!.onLeftHandler = {
-            Log.d(TAG, "${localP2PRoomMember!!.name} p2p member left")
-        }
-        p2pRoom!!.publications.forEach { publication ->
-            if (publication.publisher?.id == localP2PRoomMember!!.id) {
-                return@forEach
-            }
-            val subscription = localP2PRoomMember!!.subscribe(publication)
-            subscription?.stream?.let { stream ->
-                if (stream.contentType == Stream.ContentType.VIDEO) {
-                    remoteVideoStream = subscription.stream as RemoteVideoStream
-                }
-                if (stream.contentType == Stream.ContentType.AUDIO) {
-                    remoteAudioStream = subscription.stream as RemoteAudioStream
-                }
-            }
-        }
-        val cameraList = CameraSource.getCameras(context).toList()
-        cameraList.forEach {
-            Log.d(TAG, "camera list: $it")
-        }
-        localVideoSources = cameraList
-        Log.d(TAG, "member joined")
-        val cameraOption = CameraSource.CapturingOptions(800,800)
-        CameraSource.startCapturing(context, cameraList.first(), cameraOption)
-        localVideoStream = CameraSource.createStream()
-
-        localP2PRoomMember!!.publish(localVideoStream!!)
     }
 
     fun changeCamera(videoSource: String) {
