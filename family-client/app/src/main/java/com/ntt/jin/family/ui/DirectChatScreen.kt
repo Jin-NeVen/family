@@ -53,11 +53,9 @@ fun DirectChatScreen(
     val localVideoStream = directChatViewModel.localVideoStream
     val remotedVideoStream = directChatViewModel.remoteVideoStream
     val localMemberName = directChatViewModel.localMemberName
+    var localRenderView by remember { mutableStateOf<SurfaceViewRenderer?>(null) }
+    var remoteRenderView by remember { mutableStateOf<SurfaceViewRenderer?>(null) }
     LaunchedEffect(Unit) {
-//        //NOTICE if we run this in main thread, when server response gets latency, it would cause crash
-//        withContext(Dispatchers.Default) {
-//            directChatViewModel.chatWith(context, memberName)
-//        }
         Log.d(TAG, "DirectChatScreen launched")
         directChatViewModel.startDirectChat(applicationContext, remoteMemberName)
         directChatViewModel.updateLocalMemberName()
@@ -66,6 +64,14 @@ fun DirectChatScreen(
     DisposableEffect(Unit) {
         onDispose {
             Log.d(TAG, "DirectChatScreen onDispose")
+            if (localRenderView != null) {
+                localRenderView!!.dispose()
+                localRenderView = null
+            }
+            if (remoteRenderView != null) {
+                remoteRenderView!!.dispose()
+                remoteRenderView = null
+            }
         }
     }
 
@@ -73,33 +79,38 @@ fun DirectChatScreen(
     Column(modifier = Modifier.fillMaxSize()) {
         Text("Direct Chat Room's localMember: $localMemberName")
         Text("Direct Chat Room's remoteMember: $remoteMemberName")
-        localVideoStream?.let {
-            val renderView = SurfaceViewRenderer(context)
+        if (localVideoStream != null) {
+            localRenderView = SurfaceViewRenderer(context)
             AndroidView(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(250.dp)
                     .background(Color.Blue)
                     .padding(16.dp),
-                factory = { renderView },
+                factory = { localRenderView!! },
             ) { view ->
-                renderView.setup()
-                it.addRenderer(view)
+                localRenderView!!.setup()
+                localVideoStream.addRenderer(view)
             }
+        } else {
+            Text("localVideoStream is null")
         }
-        remotedVideoStream?.let {
-            val renderView = SurfaceViewRenderer(context)
+
+        if (remotedVideoStream != null) {
+            remoteRenderView = SurfaceViewRenderer(context)
             AndroidView(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(250.dp)
                     .background(Color.Red)
                     .padding(16.dp),
-                factory = { renderView },
+                factory = { remoteRenderView!! },
             ) { view ->
-                renderView.setup()
-                it.addRenderer(view)
+                remoteRenderView!!.setup()
+                remotedVideoStream.addRenderer(view)
             }
+        } else {
+            Text("remoteVideoStream is null")
         }
 
         Row() {
