@@ -40,7 +40,7 @@ import kotlinx.coroutines.withContext
 
 @Composable
 fun DirectChatScreen(
-    memberName: String,
+    remoteMemberName: String,
     directChatViewModel: DirectChatViewModel = viewModel(factory = DirectChatViewModel.Factory),
     navController: NavHostController)
 {
@@ -52,13 +52,15 @@ fun DirectChatScreen(
     val localVideoSources = directChatViewModel.localVideoSources
     val localVideoStream = directChatViewModel.localVideoStream
     val remotedVideoStream = directChatViewModel.remoteVideoStream
+    val localMemberName = directChatViewModel.localMemberName
     LaunchedEffect(Unit) {
 //        //NOTICE if we run this in main thread, when server response gets latency, it would cause crash
 //        withContext(Dispatchers.Default) {
 //            directChatViewModel.chatWith(context, memberName)
 //        }
         Log.d(TAG, "DirectChatScreen launched")
-        directChatViewModel.startDirectChat(applicationContext, memberName)
+        directChatViewModel.startDirectChat(applicationContext, remoteMemberName)
+        directChatViewModel.updateLocalMemberName()
     }
 
     DisposableEffect(Unit) {
@@ -69,7 +71,8 @@ fun DirectChatScreen(
 
 
     Column(modifier = Modifier.fillMaxSize()) {
-        Text("Direct Chat Room: $memberName")
+        Text("Direct Chat Room's localMember: $localMemberName")
+        Text("Direct Chat Room's remoteMember: $remoteMemberName")
         localVideoStream?.let {
             val renderView = SurfaceViewRenderer(context)
             AndroidView(
