@@ -75,40 +75,55 @@ fun DirectChatScreen(
         }
     }
 
-
     Column(modifier = Modifier.fillMaxSize()) {
         Text("Direct Chat Room's localMember: $localMemberName")
         Text("Direct Chat Room's remoteMember: $remoteMemberName")
         if (localVideoStream != null) {
-            localRenderView = SurfaceViewRenderer(context)
             AndroidView(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(250.dp)
                     .background(Color.Blue)
                     .padding(16.dp),
-                factory = { localRenderView!! },
-            ) { view ->
-                localRenderView!!.setup()
-                localVideoStream.addRenderer(view)
-            }
+                factory = { context ->
+                    Log.d(TAG, "create SurfaceViewRenderer")
+                    localRenderView = SurfaceViewRenderer(context)
+                    localRenderView!!.apply {
+                        setup()
+                        localVideoStream.addRenderer(this)
+                    }
+                },
+                update = {
+                    Log.d(TAG, "update SurfaceViewRenderer")
+                    localVideoStream.removeRenderer(localRenderView!!)
+                    localVideoStream.addRenderer(localRenderView!!)
+                }
+            )
         } else {
             Text("localVideoStream is null")
         }
 
         if (remotedVideoStream != null) {
-            remoteRenderView = SurfaceViewRenderer(context)
             AndroidView(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(250.dp)
                     .background(Color.Red)
                     .padding(16.dp),
-                factory = { remoteRenderView!! },
-            ) { view ->
-                remoteRenderView!!.setup()
-                remotedVideoStream.addRenderer(view)
-            }
+                factory = { context ->
+                    Log.d(TAG, "create SurfaceViewRenderer")
+                    remoteRenderView = SurfaceViewRenderer(context)
+                    remoteRenderView!!.apply {
+                        setup()
+                        remotedVideoStream.addRenderer(this)
+                    }
+                },
+                update = {
+                    Log.d(TAG, "update SurfaceViewRenderer")
+                    remotedVideoStream.removeRenderer(remoteRenderView!!)
+                    remotedVideoStream.addRenderer(remoteRenderView!!)
+                }
+            )
         } else {
             Text("remoteVideoStream is null")
         }

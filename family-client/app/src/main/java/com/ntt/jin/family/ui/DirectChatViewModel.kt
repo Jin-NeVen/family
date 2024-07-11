@@ -259,30 +259,33 @@ class DirectChatViewModel(
     }
 
     private fun cleanUp() {
-        CoroutineScope(Dispatchers.Default).launch {
+        viewModelScope.launch(Dispatchers.Default) {
             Log.d(TAG, "exit directChatScreen")
             CameraSource.stopCapturing()
             AudioSource.stop()
-            if (localP2PRoomMember != null) {
-                localP2PRoomMember!!.publications.forEach { roomPublication ->
+            localP2PRoomMember?.let { member ->
+                member.publications.forEach { roomPublication ->
                     Log.d(TAG, "unpublish: ${roomPublication.id}")
-                    localP2PRoomMember!!.unpublish(roomPublication)
+                    member.unpublish(roomPublication)
                 }
-                localP2PRoomMember!!.subscriptions.forEach { roomSubscription ->
+                member.subscriptions.forEach { roomSubscription ->
                     Log.d(TAG, "unsubscribe: ${roomSubscription.id}")
-                    localP2PRoomMember!!.unsubscribe(roomSubscription.id)
+                    member.unsubscribe(roomSubscription.id)
                 }
             }
             remoteVideoStream?.removeAllRenderer()
             remoteVideoStream?.dispose()
             remoteVideoStream = null
+
             remoteAudioStream?.dispose()
             remoteAudioStream = null
+
             localVideoStream?.removeAllRenderer()
             localVideoStream?.dispose()
             localVideoStream = null
             localAudioStream?.dispose()
             localAudioStream = null
+
             if (localP2PRoomMember != null) {
                 Log.d(TAG, "call leave room")
                 localP2PRoomMember!!.leave()
@@ -290,6 +293,7 @@ class DirectChatViewModel(
             } else {
                 Log.d(TAG, "localP2PRoomMember is null")
             }
+            localP2PRoomMember = null
         }
     }
 
