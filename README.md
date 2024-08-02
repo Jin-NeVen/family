@@ -15,6 +15,7 @@
 以下のコマンドを実行すると、Serverが立ち上げ、Browserよりアクセス可能なURLが表示されます。
 ```
 cd family-server
+npm install
 npm run dev
 ```
 Browserにて、CLIで得られたURLを開きます。

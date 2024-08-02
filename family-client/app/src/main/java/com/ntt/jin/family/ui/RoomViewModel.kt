@@ -10,8 +10,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import com.ntt.jin.family.FamilyApplication
-import com.ntt.jin.family.data.RoomRepository
-import com.ntt.jin.family.data.RoomRepositoryImpl
+
 import com.ntt.jin.family.data.UserRepository
 import com.ntt.jin.family.ui.HomeViewModel.Companion
 import com.ntt.skyway.core.channel.Subscription
@@ -38,7 +37,6 @@ enum class CameraType {
 }
 
 class RoomViewModel(
-    private val roomRepository: RoomRepository,
     private val userRepository: UserRepository
 ): ViewModel() {
 
@@ -53,7 +51,6 @@ class RoomViewModel(
             ): T {
                 val application = checkNotNull(extras[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY])
                 return RoomViewModel(
-                    RoomRepositoryImpl(),
                     (application as FamilyApplication).userRepository,
                 ) as T
             }

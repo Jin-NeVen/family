@@ -1,6 +1,7 @@
 package com.ntt.jin.family
 
 import android.app.Application
+import android.util.Log
 import com.ntt.jin.family.data.AuthTokenDataSource
 import com.ntt.jin.family.data.AuthTokenLocalDataSource
 import com.ntt.jin.family.data.AuthTokenRepository
@@ -11,6 +12,10 @@ import com.ntt.jin.family.data.RoomListRepository
 import com.ntt.jin.family.data.RoomListRepositoryImpl
 import com.ntt.jin.family.data.UserRepository
 import com.ntt.jin.family.data.UserRepositoryImpl
+import com.ntt.skyway.core.SkyWayContext
+import com.ntt.skyway.core.util.Logger
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class FamilyApplication: Application() {
     val homeRepository: HomeRepository by lazy {
@@ -26,16 +31,7 @@ class FamilyApplication: Application() {
     val roomListRepository: RoomListRepository by lazy {
         RoomListRepositoryImpl()
     }
-    //initialize skyway in Application class
-//    private val skyWayHelper: SkyWayHelper by lazy {
-//        SkyWayHelper(authTokenRepository, applicationContext)
-//    }
-//    override fun onCreate() {
-//        super.onCreate()
-//        skyWayHelper.initialize()
-//    }
-//    override fun onTerminate() {
-//        super.onTerminate()
-//        skyWayHelper.cleanUp()
-//    }
+    val skyWayDefaultScope: SkyWayCoroutineScope by lazy {
+        SkyWayCoroutineScope(Dispatchers.Default)
+    }
 }

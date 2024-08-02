@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
+import com.ntt.jin.family.DebugInfo
 import com.ntt.jin.family.FamilyApplication
 import com.ntt.jin.family.data.AuthTokenRepository
 import com.ntt.jin.family.data.HomeRepository
@@ -80,33 +81,6 @@ class HomeViewModel(
             })
         }
     }
-    suspend fun setupSkyWayContext2(applicationContext: Context){
-        // ServerよりSkyWay Auth Tokenを取得し、SkyWayContext.Optionsにセット
-        val option = authTokenRepository.getAuthToken()?.let {
-            SkyWayContext.Options(
-                authToken = it,
-                logLevel = Logger.LogLevel.VERBOSE
-            )
-        }
-
-        // SkyWay Auth Token取得失敗した場合、SkyWayの初期化は行わない
-        // 必要に応じてAuth Token再取得するるか、エラーメッセージをユーザに表示するか
-        if (option == null) {
-            Log.d("App", "skyway setup failed")
-        }
-        val result =  SkyWayContext.setup(applicationContext, option!!, onErrorHandler = { error ->
-            Log.d("App", "skyway setup failed: ${error.message}")
-        })
-        if (result) {
-            loadRooms()
-            startRoomsStateChecker()
-            Log.d("App", "Setup succeed")
-        }
-    }
-
-    fun cleanUp() {
-        SkyWayContext.dispose()
-    }
 
     private suspend fun loadRooms() {
         try {
@@ -121,22 +95,21 @@ class HomeViewModel(
 
     fun startRoomsStateChecker() {
         Log.d(TAG, "startRoomsStateChecker")
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
+            DebugInfo.logCurrentThreadInfo(TAG, "room state checker")
             loadRooms()
-            while (true) {
-                checkRoomsState()
-                // 60秒（60000ミリ秒）待機
-                // NOTICE change this value to your desired interval
-                delay(60000L)
-            }
+            checkRoomsState()
+            //TODO this would cause the unexpected behavior on DirectChatScreen.
+            //Check this later.
+//            while (true) {
+//                checkRoomsState()
+//                // 60秒（60000ミリ秒）待機
+//                // NOTICE change this value to your desired interval
+//                delay(60000L)
+//            }
         }
     }
 
-    // 定期的に実行したい操作
-    //NOTICE
-    // for now, we can only get the room online/offline status when
-    // launching the app since there is no roomCreated handler.
-    // Maybe we can do it in a polling way.
     private suspend fun checkRoomsState() {
         val roomNameList = roomListRepository.getRoomNameList()
         val tempList = roomNameList.mapNotNull { roomName ->
@@ -148,16 +121,9 @@ class HomeViewModel(
         }
     }
 
+    //TODO maybe we should move this to RoomViewModel
     fun joinRoom(roomName: String, memberName: String) {
         viewModelScope.launch {
-            //BUG?
-            //It seems that we cannot use cached SFURoom to call the join function.
-            //So the check here is only for online check,
-            val roomCache = onlineSfuRoomList.find { it.name == roomName }
-            if (roomCache == null) {
-                Log.d(TAG, "cache room $roomName not found, it's offline.")
-                return@launch
-            }
             //get the SFURoom again for member to join.
             val room = SFURoom.find(name = roomName)
             if (room == null) {
@@ -178,20 +144,17 @@ class HomeViewModel(
             setupSfuRoomHandler()
             //this is used by Navigation.
             joinedRoomName = roomName
-
         }
     }
 
     fun leaveRoom() {
         viewModelScope.launch {
             joinedRoomName = ""
-            localUser.localSFURoomMember?.let {
-                it.leave()
-            }
+            localUser.localSFURoomMember?.leave()
         }
     }
 
-    fun setupSfuRoomHandler() {
+    private fun setupSfuRoomHandler() {
         if (localUser.joinedRoom == null) {
             //TODO join room failed
             return
@@ -298,7 +261,7 @@ class HomeViewModel(
     }
 
     companion object {
-        val TAG = "HomeViewModel"
+        const val TAG = "HomeViewModel"
         val Factory: ViewModelProvider.Factory = object : ViewModelProvider.Factory{
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(
