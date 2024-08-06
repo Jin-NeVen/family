@@ -9,7 +9,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
-import com.ntt.skyway.core.SkyWayContext
 import com.ntt.skyway.core.content.Stream
 import com.ntt.skyway.core.content.local.LocalAudioStream
 import com.ntt.skyway.core.content.local.LocalVideoStream
@@ -17,7 +16,6 @@ import com.ntt.skyway.core.content.local.source.AudioSource
 import com.ntt.skyway.core.content.local.source.CameraSource
 import com.ntt.skyway.core.content.remote.RemoteAudioStream
 import com.ntt.skyway.core.content.remote.RemoteVideoStream
-import com.ntt.skyway.core.util.Logger
 import com.ntt.skyway.room.RoomPublication
 import com.ntt.skyway.room.member.RoomMember
 import com.ntt.skyway.room.p2p.LocalP2PRoomMember
@@ -69,6 +67,7 @@ class LiveChatViewModel(
             captureLocalVideoStream()
             captureLocalAudioStream()
             publishLocalAVStream()
+            subscribeRemoteAVStream()
         }
     }
     private suspend fun createRoom() {
@@ -81,7 +80,7 @@ class LiveChatViewModel(
             Log.d(TAG, "p2p room not created/found")
             return
         }
-        val localMemberName = "User:" + String.randomString(3)
+        val localMemberName = "User-" + String.randomString(3)
         localP2PRoomMember = p2pRoom!!.join(RoomMember.Init(localMemberName))
         if (localP2PRoomMember == null) {
             Log.d(TAG, "p2p member join failed")
