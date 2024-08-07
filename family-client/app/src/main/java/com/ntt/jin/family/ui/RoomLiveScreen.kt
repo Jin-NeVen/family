@@ -12,13 +12,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -26,9 +20,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavHostController
 import com.ntt.jin.family.LocalAppContext
 import com.ntt.jin.family.LocalHomeViewModel
-import com.ntt.skyway.core.content.remote.RemoteVideoStream
 import com.ntt.skyway.core.content.sink.SurfaceViewRenderer
-import com.ntt.skyway.room.RoomSubscription
 
 @Composable
 fun RoomLiveScreen(
@@ -38,14 +30,16 @@ fun RoomLiveScreen(
 ) {
     val homeViewModel = LocalHomeViewModel.current
     BackHandler {
-        homeViewModel.leaveRoom()
+        roomViewModel.leaveRoom()
         navController.navigate("home")
     }
     val context = LocalAppContext.current
     val remoteVideoStream = roomViewModel.remoteRoomVideoStream
     val memberList = roomViewModel.roomMembers
-    LaunchedEffect(remoteVideoStream) {
-        roomViewModel.subscribeRoomLive(roomName)
+    LaunchedEffect(Unit) {
+        //TODO maybe we don't need roomViewModel.
+        roomViewModel.joinRoom(roomName, homeViewModel.localUser.name)
+//        roomViewModel.subscribeRoomLive(roomName)
     }
     Column(modifier = Modifier.fillMaxSize()) {
         Text("Room Live Screen: $roomName")

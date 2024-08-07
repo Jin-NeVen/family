@@ -6,9 +6,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.ntt.jin.family.LocalRoomViewModel
 import com.ntt.jin.family.data.Room
 import com.ntt.jin.family.data.User
 
@@ -29,10 +27,8 @@ fun RoomCardGrid(
             items(items.size) { index ->
                 RoomCard(
                     room = items[index],
-                    roomViewModel = LocalRoomViewModel.current,
                     online = onlineSfuRoomList.any { it.name == items[index].name },
                     navController =  navController,
-                    localUser = localUser
                 )
             }
         }

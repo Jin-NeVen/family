@@ -1,7 +1,6 @@
 package com.ntt.jin.family.data
 
 import java.time.Instant
-import java.util.Date
 
 data class Room(
     val id: String,

@@ -1,7 +1,6 @@
 package com.ntt.jin.family.ui
 
 import android.content.Context
-import android.graphics.Camera
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -13,7 +12,6 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import com.ntt.jin.family.FamilyApplication
 import com.ntt.jin.family.SkyWayCoroutineScope
 import com.ntt.jin.family.data.UserRepository
-import com.ntt.skyway.core.SkyWayContext
 import com.ntt.skyway.core.content.Stream
 import com.ntt.skyway.core.content.local.LocalAudioStream
 import com.ntt.skyway.core.content.local.LocalVideoStream
@@ -25,9 +23,7 @@ import com.ntt.skyway.room.RoomPublication
 import com.ntt.skyway.room.p2p.P2PRoom
 import com.ntt.skyway.room.member.RoomMember
 import com.ntt.skyway.room.p2p.LocalP2PRoomMember
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
