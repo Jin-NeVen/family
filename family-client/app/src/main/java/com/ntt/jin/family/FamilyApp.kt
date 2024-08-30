@@ -16,16 +16,12 @@ val LocalAppContext = compositionLocalOf<Context> { error("LocalAppContext not i
 //Notice Since We need to share RoomViewModel in different screens, we use CompositionLocal to pass it
 val LocalHomeViewModel = compositionLocalOf<HomeViewModel> { error("LocalHomeViewModel not initialized") }
 
-//Notice Since We need to share RoomViewModel in different screens, we use CompositionLocal to pass it
-val LocalRoomViewModel = compositionLocalOf<RoomViewModel> { error("LocalRoomViewModel not initialized") }
-
 
 @Composable
 fun FamilyApp(homeViewModel: HomeViewModel) {
     val navController = rememberNavController()
     CompositionLocalProvider(
         LocalHomeViewModel provides viewModel( factory = HomeViewModel.Factory),
-        LocalRoomViewModel provides viewModel( factory = RoomViewModel.Factory),
     ) {
         Scaffold(
 //            bottomBar = { BottomNavigationBar(navController) },

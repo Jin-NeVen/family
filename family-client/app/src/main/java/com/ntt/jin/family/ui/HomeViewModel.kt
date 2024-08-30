@@ -22,6 +22,10 @@ import com.ntt.skyway.room.sfu.SFURoom
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+/**
+ * HomeViewModelのscopeはMainActivity
+ * MainActivity完全破棄されるまでHomeViewModelが生存し続ける
+ */
 class HomeViewModel(
     private val homeRepository: HomeRepository,
     private val userRepository: UserRepository,
@@ -44,6 +48,7 @@ class HomeViewModel(
         viewModelScope.launch {
             localUser = userRepository.getLocalUser()
             setupSkyWayContext(applicationContext)
+            Log.d(TAG, "HomeViewModel init")
         }
     }
 
@@ -110,6 +115,7 @@ class HomeViewModel(
     override fun onCleared() {
         super.onCleared()
         SkyWayContext.dispose()
+        Log.d(TAG, "onCleared")
     }
 
     companion object {

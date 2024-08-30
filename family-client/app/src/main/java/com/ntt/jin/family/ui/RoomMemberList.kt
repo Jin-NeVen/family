@@ -46,21 +46,6 @@ fun RoomMember(
             .padding(16.dp)
             .background(Color.LightGray)
     ) {
-        // SurfaceView を含めるには、AndroidView を使用します。
-//        AndroidView(
-//            modifier = Modifier
-//                .width(160.dp)
-//                .height(90.dp),
-//            factory = { context ->
-//                SurfaceView(context).apply {
-//                // SurfaceView の設定を行います。
-//            }
-//            },
-//            update = { surfaceView ->
-//                // SurfaceView の更新を行います。
-//            }
-//        )
-
         Spacer(modifier = Modifier.width(16.dp))
 
         Text(

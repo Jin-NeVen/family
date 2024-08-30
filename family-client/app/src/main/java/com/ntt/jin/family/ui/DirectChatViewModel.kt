@@ -27,6 +27,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+/**
+ * DirectChatViewModelのscopeはDirectChatScreen(画面単位)
+ * DirectChatScreenが破棄されるときに、DirectChatViewModelのonCleared()が呼ばれる
+ */
 class DirectChatViewModel(
     private val userRepository: UserRepository,
     private val skyWayDefaultScope: SkyWayCoroutineScope

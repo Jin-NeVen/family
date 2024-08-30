@@ -18,27 +18,14 @@ import com.ntt.skyway.room.sfu.SFURoom
 import kotlinx.coroutines.launch
 
 class RoomViewModel(
+    val roomName: String,
     private val userRepository: UserRepository
 ): ViewModel() {
 
     companion object {
         val TAG = "RoomViewModel"
-
-        val Factory: ViewModelProvider.Factory = object : ViewModelProvider.Factory{
-            @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(
-                modelClass: Class<T>,
-                extras: CreationExtras
-            ): T {
-                val application = checkNotNull(extras[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY])
-                return RoomViewModel(
-                    (application as FamilyApplication).userRepository,
-                ) as T
-            }
-        }
     }
 
-    var sfuRoomName: String = ""
     var sfuRoom: SFURoom? = null
 
     private var localSfuRoomMember: LocalSFURoomMember? = null
@@ -49,8 +36,11 @@ class RoomViewModel(
     var roomMembers by mutableStateOf(emptyList<RoomMember>())
         private set
 
-    fun joinRoom(roomName: String, memberName: String) {
-        sfuRoomName = roomName
+    init {
+        Log.d(TAG, "RoomViewModel init")
+        joinRoom()
+    }
+    fun joinRoom() {
         viewModelScope.launch {
             //get the SFURoom again for member to join.
             sfuRoom = SFURoom.find(name = roomName)
@@ -58,6 +48,7 @@ class RoomViewModel(
                 Log.d(TAG, "real room $roomName not found")
                 return@launch
             }
+            val memberName = userRepository.getLocalUser().name
             localSfuRoomMember = sfuRoom!!.join(RoomMember.Init(memberName))
             if (localSfuRoomMember == null) {
                 Log.d(TAG, "member $memberName join room failed")
@@ -69,7 +60,7 @@ class RoomViewModel(
             )
             setupSfuRoomHandler()
 
-            roomMembers = sfuRoom!!.members.filter { it.name != localSfuRoomMember!!.name && it.name != sfuRoomName}
+            roomMembers = sfuRoom!!.members.filter { it.name != localSfuRoomMember!!.name && it.name != roomName}
 
             sfuRoom!!.publications.forEach { publication ->
                 if (publication.contentType == Stream.ContentType.VIDEO) {
@@ -82,7 +73,7 @@ class RoomViewModel(
             }
             sfuRoom!!.onMemberListChangedHandler = {
                 Log.d(TAG, "member list changed, member count is ${sfuRoom!!.members.size}")
-                roomMembers = sfuRoom!!.members.filter { it.name != localSfuRoomMember!!.name && it.name != sfuRoomName}
+                roomMembers = sfuRoom!!.members.filter { it.name != localSfuRoomMember!!.name && it.name != roomName}
             }
 
         }
@@ -202,6 +193,21 @@ class RoomViewModel(
     override fun onCleared() {
         super.onCleared()
         Log.d(TAG, "onCleared")
+        leaveRoom()
+    }
+}
 
+class RoomViewModelFactory(
+    private val roomName: String,
+): ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(
+        modelClass: Class<T>,
+        extras: CreationExtras
+    ): T {
+        val application = checkNotNull(extras[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY])
+        return RoomViewModel(
+            roomName,
+            (application as FamilyApplication).userRepository,
+        ) as T
     }
 }
