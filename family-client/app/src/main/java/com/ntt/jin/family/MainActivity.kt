@@ -40,7 +40,6 @@ class MainActivity : ComponentActivity() {
             Manifest.permission.CAMERA,
             Manifest.permission.RECORD_AUDIO
         ))
-        homeViewModel.setupSkyWayContext(applicationContext)
         setContent {
             FamilyTheme {
                 FamilyApplicationProvider {

@@ -27,6 +27,7 @@ class HomeViewModel(
     private val userRepository: UserRepository,
     private val authTokenRepository: AuthTokenRepository,
     private val roomListRepository: RoomListRepository,
+    private val applicationContext: Context
 ) : ViewModel(){
     var isSkyWayInitialized by mutableStateOf(false)
 
@@ -42,25 +43,24 @@ class HomeViewModel(
     init {
         viewModelScope.launch {
             localUser = userRepository.getLocalUser()
+            setupSkyWayContext(applicationContext)
         }
     }
 
-    fun setupSkyWayContext(applicationContext: Context) {
-        viewModelScope.launch {
-            // ServerよりSkyWay Auth Tokenを取得し、SkyWayContext.Optionsにセット
-            val option = authTokenRepository.getAuthToken()?.let {
-                SkyWayContext.Options(
-                    authToken = it,
-                    logLevel = Logger.LogLevel.VERBOSE
-                )
-            }
-            if (option == null) {
-                Log.d("App", "skyway setup failed")
-            }
-            isSkyWayInitialized =  SkyWayContext.setup(applicationContext, option!!, onErrorHandler = { error ->
-                Log.d("App", "skyway setup failed: ${error.message}")
-            })
+    private suspend fun setupSkyWayContext(applicationContext: Context) {
+        // ServerよりSkyWay Auth Tokenを取得し、SkyWayContext.Optionsにセット
+        val option = authTokenRepository.getAuthToken()?.let {
+            SkyWayContext.Options(
+                authToken = it,
+                logLevel = Logger.LogLevel.VERBOSE
+            )
         }
+        if (option == null) {
+            Log.d("App", "skyway setup failed")
+        }
+        isSkyWayInitialized =  SkyWayContext.setup(applicationContext, option!!, onErrorHandler = { error ->
+            Log.d("App", "skyway setup failed: ${error.message}")
+        })
     }
 
     private suspend fun loadRooms() {
@@ -125,7 +125,8 @@ class HomeViewModel(
                     (application as FamilyApplication).homeRepository,
                     application.userRepository,
                     application.authTokenRepository,
-                    application.roomListRepository
+                    application.roomListRepository,
+                    application
                 ) as T
             }
         }
