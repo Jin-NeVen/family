@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.ntt.jin.family.LocalAppContext
 import com.ntt.jin.family.LocalHomeViewModel
@@ -24,11 +25,9 @@ import com.ntt.skyway.core.content.sink.SurfaceViewRenderer
 
 @Composable
 fun RoomLiveScreen(
-    roomName: String,
     roomViewModel: RoomViewModel,
     navController: NavHostController
 ) {
-    val homeViewModel = LocalHomeViewModel.current
     BackHandler {
         roomViewModel.leaveRoom()
         navController.navigate("home")
@@ -36,13 +35,9 @@ fun RoomLiveScreen(
     val context = LocalAppContext.current
     val remoteVideoStream = roomViewModel.remoteRoomVideoStream
     val memberList = roomViewModel.roomMembers
-    LaunchedEffect(Unit) {
-        //TODO maybe we don't need roomViewModel.
-        roomViewModel.joinRoom(roomName, homeViewModel.localUser.name)
-//        roomViewModel.subscribeRoomLive(roomName)
-    }
+
     Column(modifier = Modifier.fillMaxSize()) {
-        Text("Room Live Screen: $roomName")
+        Text("Room Live Screen: ${roomViewModel.roomName}")
         remoteVideoStream?.let {
             val renderView = SurfaceViewRenderer(context)
             AndroidView(
