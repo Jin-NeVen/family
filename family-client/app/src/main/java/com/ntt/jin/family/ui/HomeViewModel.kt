@@ -63,9 +63,13 @@ class HomeViewModel(
         if (option == null) {
             Log.d("App", "skyway setup failed")
         }
-        isSkyWayInitialized =  SkyWayContext.setup(applicationContext, option!!, onErrorHandler = { error ->
+        SkyWayContext.onErrorHandler = { error ->
             Log.d("App", "skyway setup failed: ${error.message}")
-        })
+        }
+        isSkyWayInitialized =  SkyWayContext.setup(applicationContext, option!!)
+        if (isSkyWayInitialized) {
+            Log.d("App", "skyway setup succeed")
+        }
     }
 
     private suspend fun loadRooms() {
