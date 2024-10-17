@@ -59,19 +59,19 @@ const token = new SkyWayAuthToken({
   const roomNameInput = document.getElementById('room-name');
 
   const myId = document.getElementById('my-id');
-  const myName = document.getElementById('my-name')
+  const myNameInput = document.getElementById('my-name')
+  const myToken = document.getElementById('my-token');
   const joinButton = document.getElementById('join');
   const closeButton = document.getElementById('close');
   const disposeButton = document.getElementById('dispose');
-  const { audio, video } =
-    await SkyWayStreamFactory.createMicrophoneAudioAndCameraStream();
+  const video = await SkyWayStreamFactory.createCameraVideoStream();
   video.attach(localVideo);
   await localVideo.play();
 
   let room;
   joinButton.onclick = async () => {
     if (roomNameInput.value === '') return;
-
+    myToken.textContent = token;
     const context = await SkyWayContext.Create(token);
     room = await SkyWayRoom.FindOrCreate(context, {
       type: 'sfu',
@@ -79,13 +79,12 @@ const token = new SkyWayAuthToken({
     });
     const me = await room.join({
       // RoomNameとMemberNameは同じにする
-      name: roomNameInput.value
+      name: myNameInput.value
     });
 
     myId.textContent = me.id;
-    myName.textContent = me.name;
 
-    await me.publish(audio);
+    // await me.publish(audio);
     await me.publish(video);
 
     const subscribeAndAttach = (publication) => {

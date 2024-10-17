@@ -2,9 +2,12 @@ package com.ntt.jin.family
 
 import android.os.Bundle
 import android.Manifest
+import android.os.Build
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -24,9 +27,8 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
         installSplashScreen().let { splashScreen ->
             splashScreen.setKeepOnScreenCondition {
                 if (homeViewModel.isSkyWayInitialized) {
@@ -35,6 +37,13 @@ class MainActivity : ComponentActivity() {
                 !homeViewModel.isSkyWayInitialized
             }
         }
+        enableEdgeToEdge()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            window.isNavigationBarContrastEnforced = false
+        }
+        super.onCreate(savedInstanceState)
+
+
 
         checkPermissionsUseCase(this, listOf(
             Manifest.permission.CAMERA,

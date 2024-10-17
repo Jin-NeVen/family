@@ -14,6 +14,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -44,7 +45,7 @@ fun DirectChatScreen(
     val localVideoSources = directChatViewModel.localVideoSources
     val localVideoStream = directChatViewModel.localVideoStream
     val remotedVideoStream = directChatViewModel.remoteVideoStream
-    val localMemberName = directChatViewModel.localMemberName
+    var localMemberName = directChatViewModel.localMemberName
     var localRenderView by remember { mutableStateOf<SurfaceViewRenderer?>(null) }
     var remoteRenderView by remember { mutableStateOf<SurfaceViewRenderer?>(null) }
     LaunchedEffect(Unit) {
@@ -93,6 +94,12 @@ fun DirectChatScreen(
             )
         } else {
             Text("localVideoStream is null")
+            TextField(
+                value = "Text",
+                onValueChange = {
+                    localMemberName = it
+                },
+            )
         }
         if (remotedVideoStream != null) {
             AndroidView(

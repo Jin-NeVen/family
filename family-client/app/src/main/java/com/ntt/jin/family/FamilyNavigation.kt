@@ -1,7 +1,8 @@
 package com.ntt.jin.family
 
+import android.os.Build
 import android.util.Log
-import androidx.compose.foundation.layout.PaddingValues
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
@@ -58,16 +59,17 @@ fun BottomNavigationBar(navController: NavHostController) {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun FamilyNavigation(
     homeViewModel: HomeViewModel,
     navController: NavHostController,
-    innerPadding: PaddingValues) {
+    modifier: Modifier) {
 //    val parentEntry = remember(navController.getBackStackEntry("home"))
     NavHost(
         navController = navController,
         startDestination = "home",
-        modifier = Modifier.padding(innerPadding)
+        modifier = modifier.padding()
     ) {
         composable("home") {
             Log.d("FamilyNavigation", "home")
@@ -90,6 +92,7 @@ fun FamilyNavigation(
             RoomLiveScreen(
                 roomViewModel = roomViewModel,
                 navController = navController,
+                modifier = modifier,
             )
         }
         composable("member/{memberName}") { backStackEntry ->

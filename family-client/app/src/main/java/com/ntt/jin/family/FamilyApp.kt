@@ -1,14 +1,16 @@
 package com.ntt.jin.family
 
 import android.content.Context
-import androidx.compose.material3.Scaffold
+import android.os.Build
+import androidx.annotation.RequiresApi
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
 import com.ntt.jin.family.ui.HomeViewModel
-import com.ntt.jin.family.ui.RoomViewModel
 
 // CompositionLocal for accessing the application context, global
 val LocalAppContext = compositionLocalOf<Context> { error("LocalAppContext not initialized") }
@@ -17,22 +19,19 @@ val LocalAppContext = compositionLocalOf<Context> { error("LocalAppContext not i
 val LocalHomeViewModel = compositionLocalOf<HomeViewModel> { error("LocalHomeViewModel not initialized") }
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun FamilyApp(homeViewModel: HomeViewModel) {
     val navController = rememberNavController()
     CompositionLocalProvider(
         LocalHomeViewModel provides viewModel( factory = HomeViewModel.Factory),
     ) {
-        Scaffold(
-//            bottomBar = { BottomNavigationBar(navController) },
-            content = { innerPadding ->
-                FamilyNavigation(
-                    homeViewModel = homeViewModel,
-                    navController = navController,
-                    innerPadding = innerPadding
-                )
-            }
+        FamilyNavigation(
+            homeViewModel = homeViewModel,
+            navController = navController,
+            modifier = Modifier.fillMaxSize()
         )
     }
+
 }
 
